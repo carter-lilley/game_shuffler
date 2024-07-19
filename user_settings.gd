@@ -2,7 +2,7 @@ extends Node
 
 var bag_size: int = 4
 var round_time_min : float = 15.0
-var round_time_max : float = 180.0
+var round_time_max : float = 15.0
 #-------------------------------
 var rom_dir: String = "Z:\\roms"
 #--------- RA

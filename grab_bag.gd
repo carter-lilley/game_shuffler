@@ -30,7 +30,7 @@ func _on_pressed() -> void:
 
 func nextGame(last_pid: int):
 	sound_player.play()
-	var pssuspend_path = "C:\\Users\\carter\\Documents\\game_launcher\\PSTools\\pssuspend.exe"
+	var pssuspend_path = ProjectSettings.globalize_path("res://tools/pssuspend.exe")
 	var curr_id = randi() % user_settings.bag_size
 	print("Current_ID: ", curr_id, " Last_PID: ", last_pid)
 	for prc_info in prc_list:
@@ -77,7 +77,8 @@ func fill_prc_list(x: int):
 		prc_list.append(prc_info)
 
 func bringWindowToFront(pid: int):
-	var bringgtofront_path = "C:\\Users\\carter\\Documents\\game_launcher\\PSTools\\bringtofront.ps1"
+	var bringgtofront_path = ProjectSettings.globalize_path("res://tools/bringtofront.ps1")
+	print(bringgtofront_path)
 	var args = [
 		"-Command",
 		"Set-ExecutionPolicy Bypass -Scope Process;",
