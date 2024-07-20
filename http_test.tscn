@@ -10,3 +10,5 @@ script = ExtResource("1_qel82")
 [node name="game_request" type="HTTPRequest" parent="."]
 
 [node name="cover_request" type="HTTPRequest" parent="."]
+
+[node name="image_request" type="HTTPRequest" parent="."]

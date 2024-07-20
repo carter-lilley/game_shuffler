@@ -177,8 +177,8 @@ func exclude_sys(dir_arr: PackedStringArray, exclusion_arr: Array) -> PackedStri
 	return trimmed_arr
 
 func rand_string(dir_arr: PackedStringArray) -> String:
-	var rand_string: String = dir_arr[randi() % dir_arr.size()]
-	return rand_string
+	var str: String = dir_arr[randi() % dir_arr.size()]
+	return str
 
 func create_timer(secs: float, function: Callable, arg: Variant):
 	var timer = Timer.new()

@@ -1,6 +1,6 @@
 extends Node
 
-var bag_size: int = 4
+var bag_size: int = 12
 var round_time_min : float = 15.0
 var round_time_max : float = 15.0
 #-------------------------------

@@ -11,6 +11,7 @@ func _ready():
 	$cover_request.request_completed.connect(cover_query_result)
 	$game_request.request_completed.connect(game_query_result)
 	$auth_request.request_completed.connect(auth_complete)
+	$image_request.request_completed.connect(image_query_result)
 	var auth_request: String = url_auth + "?client_id=" + client_id + "&client_secret=" + client_secret + "&grant_type=" + grant_type
 	$auth_request.request(auth_request,[],HTTPClient.METHOD_POST)
 	
@@ -49,20 +50,47 @@ func query_cover(game_id: int):
 		]
 		$cover_request.request(cover_query, headers, HTTPClient.METHOD_POST, cover_req)
 
-#https://images.igdb.com/igdb/image/upload/t_{size}/{hash}.jpg
-#https://images.igdb.com/igdb/image/upload/t_1080p_2x/co2j5g.jpg!!!!
 func game_query_result(result, response_code, headers, body):
-	print("Result: ", result)
-	print("Response Code: ", response_code)
+	print("Game Query Response: ", response_code)
 	print("Query body: " + body.get_string_from_utf8())
-	var json = JSON.parse_string(body.get_string_from_utf8())
-	if json[0] is Dictionary:
-		print(json[0]["name"])
-		query_cover(json[0]["id"])
+	var game = JSON.parse_string(body.get_string_from_utf8())
+	if response_code == 200:
+		if !game.is_empty():
+			query_cover(game[0]["id"])
+		else:
+			print("No results found.")
+			game_intro_scene(null)
 	else:
-		print("Query request failed with response code:", response_code)
+		push_error("Query request failed with response code:", response_code)
 
 func cover_query_result(result, response_code, headers, body):
-	print("Result: ", result)
-	print("Response Code: ", response_code)
-	print("Query body: " + body.get_string_from_utf8())
+	print("Cover Query Response: ", response_code)
+	var req = JSON.parse_string(body.get_string_from_utf8())
+	if response_code == 200:
+		if !req.is_empty():
+			var img_URL = 'https://images.igdb.com/igdb/image/upload/t_1080p_2x/' + req[0]["image_id"] + '.jpg'
+			print(img_URL)
+			$image_request.request(img_URL)
+	else:
+		push_error("An error occurred in the HTTP request.")
+
+func image_query_result(result, response_code, headers, body):
+	print("Image Query Response: ", response_code)
+	if response_code == 200:
+		var image = Image.new()
+		var load_result = image.load_jpg_from_buffer(body)
+		if load_result == OK:
+			var texture = ImageTexture.create_from_image(image)
+			game_intro_scene(texture)
+		else:
+			push_error("Failed to load image from buffer: ", load_result)
+	else:
+		push_error("Request failed with response code: ", response_code)
+
+@onready var pop_up_scene = preload("res://Scenes/game_intro.tscn")  # Load the scene as a PackedScene
+func game_intro_scene(tex : Texture2D):
+	var pop_up_instance = pop_up_scene.instantiate()
+	add_child(pop_up_instance)
+	if tex:
+		pop_up_instance.set_art(tex)
+	
