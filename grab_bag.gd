@@ -2,13 +2,12 @@ extends Button
 
 @onready var sound_player = $"../../../AudioStreamPlayer2D"
 @onready var user_settings = $"../../../user_settings"
+@onready var IGDB = $"../../../HttpTest"
 
 var system_list: PackedStringArray
-var cmd_arr: Array
 var prc_list: Array 
 func _ready() -> void:
 	fill_prc_list(user_settings.bag_size)
-	print(prc_list)
 
 	system_list = exclude_sys(dir_contents(user_settings.rom_dir), ["gc", "n3ds","ps2","ps3","psvita","psx","switch","wii","wiiu", "xbox", "xbox360"])
 	for i in range(user_settings.bag_size):
@@ -19,10 +18,10 @@ func _ready() -> void:
 		
 		var games_arr: PackedStringArray = DirAccess.get_files_at(curr_sys_dir)
 		var curr_game: String = rand_string(games_arr)
-		
+		prc_list[i]["name"] = sanitize_string(curr_game)
 		var args: PackedStringArray = ["-L" , user_settings.ra_cores_dir + curr_core , user_settings.rom_dir + "\\" + curr_sys + "\\" + curr_game]
-		cmd_arr.append(args)
-	print(cmd_arr)
+		prc_list[i]["args"] = args
+	print(prc_list)
 	
 func _on_pressed() -> void:
 	nextGame(-1)
@@ -32,7 +31,8 @@ func nextGame(last_pid: int):
 	sound_player.play()
 	var pssuspend_path = ProjectSettings.globalize_path("res://tools/pssuspend.exe")
 	var curr_id = randi() % user_settings.bag_size
-	print("Current_ID: ", curr_id, " Last_PID: ", last_pid)
+	print("Current game: ",prc_list[curr_id]["name"]," Current_ID: ", curr_id, " Last_PID: ", last_pid)
+	IGDB.query_game(prc_list[curr_id]["name"])
 	for prc_info in prc_list:
 	#suspend all active processes..
 		if prc_info["pid"] == last_pid:
@@ -46,7 +46,7 @@ func nextGame(last_pid: int):
 	#find the current process. if this process is new, create & assign it - else, resume it
 		if prc_info["id"] == curr_id:
 			if prc_info["pid"] == 0:
-				prc_info["pid"] = OS.create_process(user_settings.ra, cmd_arr[curr_id])
+				prc_info["pid"] = OS.create_process(user_settings.ra, prc_info["args"])
 				if prc_info["pid"] != 0:
 					prc_info["active"] = true
 					print("Creating Process: ", prc_info["pid"])
@@ -71,14 +71,31 @@ func fill_prc_list(x: int):
 	for i in range(x):
 		var prc_info = {
 			"id": i,
+			"name": "",
+			"args": PackedStringArray(),
 			"pid": 0,
 			"active": false  # or false, depending on your initial state
 		}
 		prc_list.append(prc_info)
 
+func sanitize_string(input: String) -> String:
+	print(input)
+	# Remove text after period
+	var sanitized_input = input.split(".")[0]  # Remove the period and everything after it
+	sanitized_input = sanitized_input.strip_edges()  # Remove leading and trailing whitespace
+	# Use a regular expression to remove text within parentheses
+	var regex = RegEx.new()
+	regex.compile("\\s*\\([^()]*\\)\\s*")  # Matches text within parentheses and surrounding spaces
+	for i in 3:
+		sanitized_input = regex.sub(sanitized_input, "")
+	# Escape quotes if necessary
+	sanitized_input = sanitized_input.replace('"', '\\"')
+	print(sanitized_input)
+	return sanitized_input
+
 func bringWindowToFront(pid: int):
 	var bringgtofront_path = ProjectSettings.globalize_path("res://tools/bringtofront.ps1")
-	print(bringgtofront_path)
+	#print(bringgtofront_path)
 	var args = [
 		"-Command",
 		"Set-ExecutionPolicy Bypass -Scope Process;",
@@ -155,8 +172,8 @@ func exclude_sys(dir_arr: PackedStringArray, exclusion_arr: Array) -> PackedStri
 		var dir_name = dir_arr[i]
 		if !exclusion_arr.has(dir_name):
 			trimmed_arr.push_back(dir_name)
-		else:
-			print("Excluded: ", dir_name)
+		#else:
+			#print("Excluded: ", dir_name)
 	return trimmed_arr
 
 func rand_string(dir_arr: PackedStringArray) -> String:
@@ -182,9 +199,9 @@ func dir_contents(path) -> PackedStringArray:
 		while entry != "":
 			if dir.current_is_dir():
 				dir_arr.append(entry)
-				print("Found dir: " + entry)
-			else:
-				print("Found file: " + entry)
+				#print("Found dir: " + entry)
+			#else:
+				#print("Found file: " + entry)
 			entry = dir.get_next()
 		return dir_arr
 	else:

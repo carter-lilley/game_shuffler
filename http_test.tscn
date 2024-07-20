@@ -5,4 +5,8 @@
 [node name="HttpTest" type="Node"]
 script = ExtResource("1_qel82")
 
-[node name="HTTPRequest" type="HTTPRequest" parent="."]
+[node name="auth_request" type="HTTPRequest" parent="."]
+
+[node name="game_request" type="HTTPRequest" parent="."]
+
+[node name="cover_request" type="HTTPRequest" parent="."]
