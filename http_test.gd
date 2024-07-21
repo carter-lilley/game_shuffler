@@ -27,7 +27,11 @@ func auth_complete(result, response_code, headers, body):
 	else:
 		print("Auth request failed with response code:", response_code)
 
+var curr_title
+var curr_info
 func query_game(game_title: String):
+	curr_title = game_title
+	curr_info = "1997"
 	print("Performing serach for ",game_title)
 	if access_token:
 		var game_req = 'search "' + game_title + '"; f id, name; limit 1;'
@@ -91,6 +95,7 @@ func image_query_result(result, response_code, headers, body):
 func game_intro_scene(tex : Texture2D):
 	var pop_up_instance = pop_up_scene.instantiate()
 	add_child(pop_up_instance)
+	pop_up_instance.set_info(curr_title,curr_info)
 	if tex:
 		pop_up_instance.set_art(tex)
 	

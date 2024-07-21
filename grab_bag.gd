@@ -88,6 +88,9 @@ func sanitize_string(input: String) -> String:
 	regex.compile("\\s*\\([^()]*\\)\\s*")  # Matches text within parentheses and surrounding spaces
 	for i in 3:
 		sanitized_input = regex.sub(sanitized_input, "")
+	# Remove version numbers like "v1", "v2", "v3.0"
+	regex.compile("\\bv\\d+(\\.\\d+)?\\b")  # Matches "v1", "v2.0", etc.
+	sanitized_input = regex.sub(sanitized_input, "")
 	# Escape quotes if necessary
 	sanitized_input = sanitized_input.replace('"', '\\"')
 	print(sanitized_input)
