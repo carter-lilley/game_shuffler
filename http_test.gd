@@ -29,12 +29,15 @@ func auth_complete(result, response_code, headers, body):
 
 var curr_title
 var curr_info
-func query_game(game_title: String):
+func query_game(game_title: String, game_plat : String):
 	curr_title = game_title
-	curr_info = "1997"
+	curr_info = game_plat
 	print("Performing serach for ",game_title)
 	if access_token:
-		var game_req = 'search "' + game_title + '"; f id, name; limit 1;'
+		#var game_req = 'search "' + game_title + '";' + 'f id, name; w platforms = "' + game_plat + '"; limit 1'
+		var game_req = 'search "' + game_title + '";' + 'f id, name; limit 1;'
+		#var game_req = 'f id, name; w name ~ *"${'+ game_title +'}"*; limit 1;'
+		#`name ~ *"${query}"*`
 		var headers = [
 			"Client-ID: " + client_id,
 			"Authorization: Bearer " + access_token,

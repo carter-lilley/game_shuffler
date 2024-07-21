@@ -19,9 +19,10 @@ func _ready() -> void:
 		var games_arr: PackedStringArray = DirAccess.get_files_at(curr_sys_dir)
 		var curr_game: String = rand_string(games_arr)
 		prc_list[i]["name"] = sanitize_string(curr_game)
+		prc_list[i]["plat"] = curr_sys
 		var args: PackedStringArray = ["-L" , user_settings.ra_cores_dir + curr_core , user_settings.rom_dir + "\\" + curr_sys + "\\" + curr_game]
 		prc_list[i]["args"] = args
-	print(prc_list)
+	#print(prc_list)
 	
 func _on_pressed() -> void:
 	nextGame(-1)
@@ -32,7 +33,7 @@ func nextGame(last_pid: int):
 	var pssuspend_path = ProjectSettings.globalize_path("res://tools/pssuspend.exe")
 	var curr_id = randi() % user_settings.bag_size
 	print("Current game: ",prc_list[curr_id]["name"]," Current_ID: ", curr_id, " Last_PID: ", last_pid)
-	IGDB.query_game(prc_list[curr_id]["name"])
+	IGDB.query_game(prc_list[curr_id]["name"],prc_list[curr_id]["plat"])
 	for prc_info in prc_list:
 	#suspend all active processes..
 		if prc_info["pid"] == last_pid:
@@ -72,6 +73,7 @@ func fill_prc_list(x: int):
 		var prc_info = {
 			"id": i,
 			"name": "",
+			"plat": "",
 			"args": PackedStringArray(),
 			"pid": 0,
 			"active": false  # or false, depending on your initial state
