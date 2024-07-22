@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bpfpa21p7a2l4"]
+
+[ext_resource type="Script" path="res://Scripts/notif_man.gd" id="1_hsppr"]
+
+[node name="notif_man" type="Node"]
+script = ExtResource("1_hsppr")

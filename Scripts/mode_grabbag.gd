@@ -2,7 +2,6 @@ extends Button
 
 @onready var sound_player = $"../../../AudioStreamPlayer2D"
 @onready var user_settings = $"../../../user_settings"
-@onready var IGDB = $"../../../HttpTest"
 
 var system_list: PackedStringArray
 var prc_list: Array 
@@ -33,7 +32,8 @@ func nextGame(last_pid: int):
 	var pssuspend_path = ProjectSettings.globalize_path("res://tools/pssuspend.exe")
 	var curr_id = randi() % user_settings.bag_size
 	print("Current game: ",prc_list[curr_id]["name"]," Current_ID: ", curr_id, " Last_PID: ", last_pid)
-	IGDB.query_game(prc_list[curr_id]["name"],prc_list[curr_id]["plat"])
+	var game_qry = await IGDB.query_game(prc_list[curr_id]["name"],prc_list[curr_id]["plat"])
+	notifman.notif_intro(game_qry["tex"], game_qry["name"], str(game_qry["id"]))
 	for prc_info in prc_list:
 	#suspend all active processes..
 		if prc_info["pid"] == last_pid:
@@ -81,7 +81,7 @@ func fill_prc_list(x: int):
 		prc_list.append(prc_info)
 
 func sanitize_string(input: String) -> String:
-	print(input)
+	#print(input)
 	# Remove text after period
 	var sanitized_input = input.split(".")[0]  # Remove the period and everything after it
 	sanitized_input = sanitized_input.strip_edges()  # Remove leading and trailing whitespace
@@ -95,7 +95,7 @@ func sanitize_string(input: String) -> String:
 	sanitized_input = regex.sub(sanitized_input, "")
 	# Escape quotes if necessary
 	sanitized_input = sanitized_input.replace('"', '\\"')
-	print(sanitized_input)
+	#print(sanitized_input)
 	return sanitized_input
 
 func bringWindowToFront(pid: int):
@@ -182,8 +182,8 @@ func exclude_sys(dir_arr: PackedStringArray, exclusion_arr: Array) -> PackedStri
 	return trimmed_arr
 
 func rand_string(dir_arr: PackedStringArray) -> String:
-	var str: String = dir_arr[randi() % dir_arr.size()]
-	return str
+	var _str: String = dir_arr[randi() % dir_arr.size()]
+	return _str
 
 func create_timer(secs: float, function: Callable, arg: Variant):
 	var timer = Timer.new()
