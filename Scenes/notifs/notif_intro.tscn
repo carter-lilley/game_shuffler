@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=3 uid="uid://dqxk2mnx6nmpu"]
+[gd_scene load_steps=9 format=3 uid="uid://dqxk2mnx6nmpu"]
 
 [ext_resource type="Texture2D" uid="uid://diibd4qmx2fsm" path="res://Images/placeholder_cover.jpg" id="1_eo18v"]
 [ext_resource type="Script" path="res://Scripts/notif_intro_controller.gd" id="1_mkhu7"]
 [ext_resource type="Theme" uid="uid://r7auhejeh823" path="res://Themes/panel_theme.tres" id="2_bt6pu"]
 [ext_resource type="FontFile" uid="uid://bhwdfdifwm12r" path="res://Fonts/Impact/impact.ttf" id="2_rdjiu"]
 [ext_resource type="FontFile" uid="uid://corxc3kvlwll0" path="res://Fonts/Univers/UniversRegular.ttf" id="3_ttny6"]
+[ext_resource type="Script" path="res://Scenes/notifs/autoscale_label.gd" id="4_oi772"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_p525s"]
 font = ExtResource("2_rdjiu")
@@ -25,7 +26,6 @@ grow_vertical = 2
 script = ExtResource("1_mkhu7")
 
 [node name="Back" type="Panel" parent="."]
-visible = false
 modulate = Color(0, 0.430994, 0.866714, 0.713726)
 layout_mode = 1
 anchors_preset = 15
@@ -81,6 +81,7 @@ size_flags_vertical = 8
 text = "GAME TITLE"
 label_settings = SubResource("LabelSettings_p525s")
 horizontal_alignment = 1
+script = ExtResource("4_oi772")
 
 [node name="Info" type="Label" parent="VBoxContainer/HBoxContainer/Title_Pivot/Panel/HBoxContainer/VBoxContainer"]
 layout_mode = 2
