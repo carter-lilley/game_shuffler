@@ -33,7 +33,10 @@ func nextGame(last_pid: int):
 	var curr_id = randi() % user_settings.bag_size
 	print("Current game: ",prc_list[curr_id]["name"]," Current_ID: ", curr_id, " Last_PID: ", last_pid)
 	var game_qry = await IGDB.query_game(prc_list[curr_id]["name"],prc_list[curr_id]["plat"])
-	notifman.notif_intro(game_qry["tex"], game_qry["name"], str(game_qry["id"]))
+	if game_qry["name"] == "":
+		notifman.notif_intro(game_qry["tex"], prc_list[curr_id]["name"], str(prc_list[curr_id]["plat"]), str(game_qry["release"]))
+	else:
+		notifman.notif_intro(game_qry["tex"], game_qry["name"], str(prc_list[curr_id]["plat"]), str(game_qry["release"]))
 	for prc_info in prc_list:
 	#suspend all active processes..
 		if prc_info["pid"] == last_pid:

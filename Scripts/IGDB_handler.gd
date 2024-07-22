@@ -29,14 +29,16 @@ func auth_complete(result, response_code, headers, body):
 func query_game(game_title: String, game_plat : String) -> Dictionary:
 	var res_dict = {
 			"id": 0,
-			"name": "",
+			"name": "", 
+			"release": "",
 			"tex": Texture2D
 		}
 	res_dict["tex"] = placeholder_tex
 	
 	if access_token:
 		#var game_req = 'search "' + game_title + '";' + 'f id, name; w platforms = "' + game_plat + '"; limit 1'
-		var game_req = 'search "' + game_title + '";' + 'f id, name; limit 1;'
+		var game_req = 'search "' + game_title + '";' + 'f id, name, first_release_date; limit 1;'
+		#'fields age_ratings,aggregated_rating,aggregated_rating_count,alternative_names,artworks,bundles,category,checksum,collection,collections,cover,created_at,dlcs,expanded_games,expansions,external_games,first_release_date,follows,forks,franchise,franchises,game_engines,game_localizations,game_modes,genres,hypes,involved_companies,keywords,language_supports,multiplayer_modes,name,parent_game,platforms,player_perspectives,ports,rating,rating_count,release_dates,remakes,remasters,screenshots,similar_games,slug,standalone_expansions,status,storyline,summary,tags,themes,total_rating,total_rating_count,updated_at,url,version_parent,version_title,videos,websites;'
 		#var game_req = 'f id, name; w name ~ *"${'+ game_title +'}"*; limit 1;'
 		var headers = [
 			"Client-ID: " + client_id,
@@ -54,9 +56,14 @@ func query_game(game_title: String, game_plat : String) -> Dictionary:
 		if qry_game_res[1] == 200:
 			if !parse_game.is_empty(): 
 				var game_info = parse_game[0]
+				print(game_info)
 #	Fill return dictionary with relavant info
 				res_dict["name"] = game_info["name"]
 				res_dict["id"] = game_info["id"]
+				#res_dict["release"] = game_info["first_release_date"]
+				if game_info.has("first_release_date"):
+					var date_dict : Dictionary = Time.get_date_dict_from_unix_time(game_info["first_release_date"])
+					res_dict["release"] = date_dict["year"]
 #	Construct Cover request
 				var cover_req = 'f url, image_id; 
 						w game = ' + str(game_info["id"]) + '; limit 1;'

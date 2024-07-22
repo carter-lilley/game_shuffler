@@ -43,9 +43,10 @@ func clip_2():
 func clip_3():
 	queue_free()
 
-func set_info(title : String, info : String):
+func set_info(title : String, system : String, release : String):
 	title_label.text = title
-	info_label.text = info
+	var infostr = system + " • " + release
+	info_label.text = infostr
 	pass
 
 func set_art(tex = Texture2D):
