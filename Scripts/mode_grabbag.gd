@@ -32,11 +32,7 @@ func nextGame(last_pid: int):
 	var pssuspend_path = ProjectSettings.globalize_path("res://tools/pssuspend.exe")
 	var curr_id = randi() % user_settings.bag_size
 	print("Current game: ",prc_list[curr_id]["name"]," Current_ID: ", curr_id, " Last_PID: ", last_pid)
-	var game_qry = await IGDB.query_game(prc_list[curr_id]["name"],prc_list[curr_id]["plat"])
-	if game_qry["name"] == "":
-		notifman.notif_intro(game_qry["tex"], prc_list[curr_id]["name"], str(prc_list[curr_id]["plat"]), str(game_qry["release"]))
-	else:
-		notifman.notif_intro(game_qry["tex"], game_qry["name"], str(prc_list[curr_id]["plat"]), str(game_qry["release"]))
+	
 	for prc_info in prc_list:
 	#suspend all active processes..
 		if prc_info["pid"] == last_pid:
@@ -54,6 +50,11 @@ func nextGame(last_pid: int):
 				if prc_info["pid"] != 0:
 					prc_info["active"] = true
 					print("Creating Process: ", prc_info["pid"])
+					var game_qry = await IGDB.query_game(prc_list[curr_id]["name"],prc_list[curr_id]["plat"])
+					if game_qry["name"] == "":
+						notifman.notif_intro(game_qry["tex"], prc_list[curr_id]["name"], str(prc_list[curr_id]["plat"]), str(game_qry["release"]))
+					else:
+						notifman.notif_intro(game_qry["tex"], game_qry["name"], str(prc_list[curr_id]["plat"]), str(game_qry["release"]))
 				else:
 					print("Failed to create new process.")
 			else:
@@ -65,6 +66,8 @@ func nextGame(last_pid: int):
 						print("Failed to resume process: ", prc_info["pid"])
 					else:
 						print("Resuming Process: ", prc_info["pid"])
+				else:
+					pass
 	#print(prc_list)
 	last_pid = prc_list[curr_id]["pid"]
 	bringWindowToFront(prc_list[curr_id]["pid"])

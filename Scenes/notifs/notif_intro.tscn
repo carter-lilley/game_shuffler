@@ -26,6 +26,7 @@ grow_vertical = 2
 script = ExtResource("1_mkhu7")
 
 [node name="Back" type="Panel" parent="."]
+visible = false
 modulate = Color(0, 0.430994, 0.866714, 0.713726)
 layout_mode = 1
 anchors_preset = 15
