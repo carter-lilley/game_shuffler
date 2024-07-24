@@ -6,6 +6,7 @@ var round_time_max : float = 45.0
 #-------------------------------
 var rom_dir: String = "Z:\\roms"
 #--------- RA
+var ra_local: String = ProjectSettings.globalize_path("res://tools/retroarch/retroarch.exe")
 var ra_dir: String = "D:\\Emulation\\storage\\retroarch"
 var ra: String = ra_dir + "\\retroarch.exe"
 var ra_cores_dir: String = ra_dir + "\\cores"
