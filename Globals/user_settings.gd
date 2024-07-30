@@ -33,7 +33,7 @@ var core_ngpc: String = "\\mednafen_ngp_libretro.dll"
 #var core_ps3: String = "\\mesen_libretro"
 var core_psp: String = "\\ppsspp_libretro.dll"
 #var core_psvita
-#var core_psx: String = "\\mesen_libretro"
+var core_psx: String = "\\swanstation_libretro.dll"
 var core_saturn: String = "\\mednafen_saturn_libretro.dll"
 var core_sega32x: String = "\\picodrive_libretro.dll"
 var core_segacd: String = "\\genesis_plus_gx_libretro.dll"

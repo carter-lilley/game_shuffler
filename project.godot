@@ -19,6 +19,8 @@ config/icon="res://icon.svg"
 
 notifman="*res://Globals/notif_man.tscn"
 IGDB="*res://Globals/IGDB_handler.tscn"
+usersettings="*res://Globals/user_settings.gd"
+globals="*res://Globals/globals.gd"
 
 [display]
 

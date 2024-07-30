@@ -1,8 +1,12 @@
-[gd_scene load_steps=4 format=3 uid="uid://vf05yu8hwe1m"]
+[gd_scene load_steps=8 format=3 uid="uid://vf05yu8hwe1m"]
 
 [ext_resource type="Script" path="res://Scripts/mode_grabbag.gd" id="1_0pk6d"]
-[ext_resource type="Script" path="res://Scripts/user_settings.gd" id="2_0als8"]
+[ext_resource type="Texture2D" uid="uid://dhelt10flog05" path="res://Sprites/ui_icons/1x/pause.png" id="1_4rgtf"]
+[ext_resource type="Script" path="res://Globals/user_settings.gd" id="2_0als8"]
 [ext_resource type="AudioStream" uid="uid://cjade33mfa1sg" path="res://Sounds/Chime.wav" id="3_tanc2"]
+[ext_resource type="Texture2D" uid="uid://b022tynb5hjol" path="res://Sprites/ui_icons/1x/forward.png" id="4_urtub"]
+[ext_resource type="Texture2D" uid="uid://4f85a5ftp6fn" path="res://Sprites/ui_icons/1x/buttonX.png" id="5_t5biw"]
+[ext_resource type="Texture2D" uid="uid://j4cmw1ripp26" path="res://Sprites/ui_icons/1x/next.png" id="6_r3txv"]
 
 [node name="grab_bag" type="Control"]
 layout_mode = 3
@@ -11,6 +15,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_0pk6d")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
@@ -25,12 +30,26 @@ custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 alignment = 2
 
-[node name="Button" type="Button" parent="HBoxContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Start" type="Button" parent="HBoxContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(0, 45)
 layout_mode = 2
-text = "Grab Bag!
-"
-script = ExtResource("1_0pk6d")
+toggle_mode = true
+icon = ExtResource("4_urtub")
+
+[node name="Pause" type="Button" parent="HBoxContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+icon = ExtResource("1_4rgtf")
+
+[node name="Remove" type="Button" parent="HBoxContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+icon = ExtResource("5_t5biw")
+
+[node name="Skip" type="Button" parent="HBoxContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+icon = ExtResource("6_r3txv")
 
 [node name="user_settings" type="Node" parent="."]
 script = ExtResource("2_0als8")
@@ -38,4 +57,4 @@ script = ExtResource("2_0als8")
 [node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("3_tanc2")
 
-[connection signal="pressed" from="HBoxContainer/VBoxContainer/Button" to="HBoxContainer/VBoxContainer/Button" method="_on_pressed"]
+[connection signal="toggled" from="HBoxContainer/VBoxContainer/HBoxContainer/Start" to="." method="_toggled"]

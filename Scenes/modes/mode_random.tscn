@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://b2si0mk4a7a75"]
 
 [ext_resource type="Script" path="res://Scripts/mode_random.gd" id="1_xbkym"]
-[ext_resource type="Script" path="res://Scripts/user_settings.gd" id="2_d6vc5"]
+[ext_resource type="Script" path="res://Globals/user_settings.gd" id="2_d6vc5"]
 
 [node name="pure_random" type="Control"]
 layout_mode = 3
