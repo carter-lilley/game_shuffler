@@ -56,7 +56,7 @@ func rollGame() -> Dictionary:
 var curr_timer: Timer
 func _process(delta: float) -> void:
 	if curr_timer:
-		time_label.text = str(curr_timer.time_left)
+		time_label.text = str(round(curr_timer.time_left))
 
 var last_pid : int = -1
 func startGame(id : int):
@@ -82,7 +82,8 @@ func startGame(id : int):
 		resumePrc(id)
 	last_pid = prc_list[id]["pid"]
 	bringtofront(prc_list[id]["pid"])
-	curr_timer = globals.create_timer(randf_range(usersettings.round_time_min, usersettings.round_time_max),startGame)
+	var new_id = randi() % usersettings.bag_size
+	curr_timer = globals.create_timer(randf_range(usersettings.round_time_min, usersettings.round_time_max),startGame, new_id)
 
 func resumePrc(pid):
 	if !prc_list[pid]["active"]:
