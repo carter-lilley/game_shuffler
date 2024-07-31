@@ -1,6 +1,12 @@
 extends Node
 
-var bag_size: int = 12
+func _ready() -> void:
+	get_window().size = screen_size
+
+#1600, 900
+var screen_size: Vector2 = Vector2(1600,900)
+#-------------------------------
+var bag_size: int = 4
 var round_time_min : float = 10.0
 var round_time_max : float = 45.0
 #-------------------------------

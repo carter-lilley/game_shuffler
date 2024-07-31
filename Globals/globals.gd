@@ -1,23 +1,32 @@
 extends Node
 var timer_list: Array
 
-func kill_timers():
+func timers_pause(state : bool):
+	for timer in timer_list:
+		if timer.is_inside_tree():
+			timer.set_paused(state)
+			print(timer, " set to ",state)	
+
+func timers_kill():
 	for timer in timer_list:
 		if timer.is_inside_tree():
 			timer.stop()
 			timer.queue_free()
-			print("Timer stopped and queued for deletion")	
+			timer_list.erase(timer)
+			print(timer, " stopped and queued for deletion")	
 
-func create_timer(secs: float, function: Callable, arg: Variant):
+func create_timer(secs: float, function: Callable, arg: Variant = null):
 	var timer = Timer.new()
 	timer.wait_time = secs
 	timer.one_shot = true
 	timer.autostart = true
 	add_child(timer)  # Add the timer as a child of the current node (assuming this is a Node or Control)
 	# Connect the timeout signal to call the specified function
-	timer.timeout.connect(function.bind(arg))
+	if arg:
+		timer.timeout.connect(function.bind(arg))
+	else:
+		timer.timeout.connect(function)
 	timer_list.append(timer)
-	print(timer_list)
 	return timer
 
 func dir_contents(path) -> PackedStringArray:

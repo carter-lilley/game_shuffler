@@ -4,8 +4,8 @@
 [ext_resource type="Texture2D" uid="uid://dhelt10flog05" path="res://Sprites/ui_icons/1x/pause.png" id="1_4rgtf"]
 [ext_resource type="Script" path="res://Globals/user_settings.gd" id="2_0als8"]
 [ext_resource type="AudioStream" uid="uid://cjade33mfa1sg" path="res://Sounds/Chime.wav" id="3_tanc2"]
+[ext_resource type="Texture2D" uid="uid://obmpq4l4uwm5" path="res://Sprites/ui_icons/1x/cross.png" id="4_2ucpa"]
 [ext_resource type="Texture2D" uid="uid://b022tynb5hjol" path="res://Sprites/ui_icons/1x/forward.png" id="4_urtub"]
-[ext_resource type="Texture2D" uid="uid://4f85a5ftp6fn" path="res://Sprites/ui_icons/1x/buttonX.png" id="5_t5biw"]
 [ext_resource type="Texture2D" uid="uid://j4cmw1ripp26" path="res://Sprites/ui_icons/1x/next.png" id="6_r3txv"]
 
 [node name="grab_bag" type="Control"]
@@ -30,6 +30,10 @@ custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 alignment = 2
 
+[node name="Label" type="Label" parent="HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "00:00"
+
 [node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/VBoxContainer"]
 layout_mode = 2
 
@@ -41,11 +45,12 @@ icon = ExtResource("4_urtub")
 
 [node name="Pause" type="Button" parent="HBoxContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
+toggle_mode = true
 icon = ExtResource("1_4rgtf")
 
 [node name="Remove" type="Button" parent="HBoxContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
-icon = ExtResource("5_t5biw")
+icon = ExtResource("4_2ucpa")
 
 [node name="Skip" type="Button" parent="HBoxContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
@@ -58,3 +63,6 @@ script = ExtResource("2_0als8")
 stream = ExtResource("3_tanc2")
 
 [connection signal="toggled" from="HBoxContainer/VBoxContainer/HBoxContainer/Start" to="." method="_toggled"]
+[connection signal="toggled" from="HBoxContainer/VBoxContainer/HBoxContainer/Pause" to="." method="_pause"]
+[connection signal="pressed" from="HBoxContainer/VBoxContainer/HBoxContainer/Remove" to="." method="_remove"]
+[connection signal="pressed" from="HBoxContainer/VBoxContainer/HBoxContainer/Skip" to="." method="_skip"]
