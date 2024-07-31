@@ -54,7 +54,7 @@ func rollGame() -> Dictionary:
 	return newGame
 
 var curr_timer: Timer
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if curr_timer:
 		time_label.text = str(round(curr_timer.time_left))
 
@@ -62,7 +62,7 @@ var last_pid : int = -1
 func startGame(id : int):
 	sound_player.play()
 	print("Current game: ",prc_list[id]["name"]," Current_ID: ", id, " Last_PID: ", last_pid)
-	suspendPrc(last_pid) 
+	await suspendPrc(last_pid) 
 	#loop through and suspend matching PRCs (Update active status, etc)
 	#Find the current process. if this process is new, create & assign it - else, resume it
 	var curr_prc = prc_list[id]
@@ -82,18 +82,19 @@ func startGame(id : int):
 		resumePrc(id)
 	last_pid = prc_list[id]["pid"]
 	bringtofront(prc_list[id]["pid"])
-	var new_id = randi() % usersettings.bag_size
-	curr_timer = globals.create_timer(randf_range(usersettings.round_time_min, usersettings.round_time_max),startGame, new_id)
+	if curr_timer:
+		curr_timer.stop()
+	curr_timer = globals.create_timer(randf_range(usersettings.round_time_min, usersettings.round_time_max),startGame, newId())
 
-func resumePrc(pid):
-	if !prc_list[pid]["active"]:
-		prc_list[pid]["active"] = true
-		var resume = PackedStringArray(["-r", prc_list[pid]["pid"]])
+func resumePrc(id):
+	if !prc_list[id]["active"]:
+		prc_list[id]["active"] = true
+		var resume = PackedStringArray(["-r", prc_list[id]["pid"]])
 		var result = OS.execute(pssuspend_path,resume, [], true)
 		if result != OK:
-			print("Failed to resume process: ", prc_list[pid]["pid"])
+			print("Failed to resume process: ", prc_list[id]["pid"])
 		else:
-			print("Resuming Process: ", prc_list[pid]["pid"])
+			print("Resuming Process: ", prc_list[id]["pid"])
 
 func suspendPrc(pid):
 	for prc_info in prc_list:
@@ -109,8 +110,7 @@ func suspendPrc(pid):
 func _toggled(on: bool) -> void:
 	if on:
 		btn_start.icon = icon_stop
-		var new_id = randi() % usersettings.bag_size
-		startGame(new_id)
+		startGame(newId())
 	else:
 		btn_start.icon = icon_play
 		shutdown()
@@ -129,15 +129,16 @@ func _pause(state: bool) -> void:
 		btn_pause.icon = icon_pause
 	globals.timers_pause(state)
 
+func newId() -> int:
+	var new_id: int
+	while true:
+		new_id = randi() % usersettings.bag_size
+		if prc_list[new_id]["pid"] != last_pid:
+			return new_id
+	return -1
+	
 func _skip() -> void:
-		var new_id: int
-		# Loop until a valid new_id is found
-		while true:
-			new_id = randi() % usersettings.bag_size
-			if prc_list[new_id]["pid"] != last_pid:
-				break
-		# Proceed with the new valid ID
-		startGame(new_id)
+	startGame(newId())
 
 func _remove() -> void:
 	for i in range(prc_list.size()):
@@ -156,7 +157,7 @@ func bringtofront(pid: int):
 		". " + bringgtofront_path + "; goto " + str(pid)
 	]
 	var output = []
-	var exit_code = OS.execute("powershell.exe", args, output, true)
+	OS.execute("powershell.exe", args, output, true)
 	print("Output:", output)  # Output array contains the entire shell output as a single String element
 
 func match_core(sys : String) -> String:
@@ -196,6 +197,8 @@ func match_core(sys : String) -> String:
 			current_core = usersettings.core_ngpc
 		"psp":
 			current_core = usersettings.core_psp
+		"psx":
+			current_core = usersettings.core_psx
 		"saturn":
 			current_core = usersettings.core_saturn
 		"sega32x":

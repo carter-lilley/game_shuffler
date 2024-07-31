@@ -29,3 +29,7 @@ func adjust_font_size():
 			break
 		font_size -= 1
 		self.label_settings.set_font_size(font_size)
+	
+	if font_size <= 1:
+		font_size = 1
+		self.label_settings.set_font_size(font_size)

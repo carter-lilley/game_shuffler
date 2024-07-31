@@ -1,17 +1,17 @@
 extends Node
 
-func _ready() -> void:
-	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+#func _ready() -> void:
+	#DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	#get_window().size = screen_size
 
 #1600, 900
 var screen_size: Vector2 = Vector2(1600,900)
 #-------------------------------
-var bag_size: int = 8
+var bag_size: int = 14
 var round_time_min : float = 45.0
 var round_time_max : float = 180.0
 #-------------------------------
-var rom_dir: String = "Z:\\roms"
+var rom_dir: String = "Z:\\roms\\"
 #--------- RA
 var ra_local: String = ProjectSettings.globalize_path("res://tools/retroarch/retroarch.exe")
 var ra_dir: String = "D:\\Emulation\\storage\\retroarch"
