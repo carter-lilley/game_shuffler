@@ -55,14 +55,14 @@ func rollGame() -> Dictionary:
 
 var curr_timer: Timer
 func _process(_delta: float) -> void:
-	if curr_timer:
+	if is_instance_valid(curr_timer):
 		time_label.text = str(round(curr_timer.time_left))
 
 var last_pid : int = -1
 func startGame(id : int):
 	sound_player.play()
 	print("Current game: ",prc_list[id]["name"]," Current_ID: ", id, " Last_PID: ", last_pid)
-	await suspendPrc(last_pid) 
+	#await suspendPrc(last_pid) 
 	#loop through and suspend matching PRCs (Update active status, etc)
 	#Find the current process. if this process is new, create & assign it - else, resume it
 	var curr_prc = prc_list[id]
@@ -79,12 +79,14 @@ func startGame(id : int):
 		else:
 			print("Failed to create new process.")
 	else:
-		resumePrc(id)
+		pass
+		#resumePrc(id)
 	last_pid = prc_list[id]["pid"]
 	bringtofront(prc_list[id]["pid"])
-	if curr_timer:
+	if is_instance_valid(curr_timer):
 		curr_timer.stop()
-	curr_timer = globals.create_timer(randf_range(usersettings.round_time_min, usersettings.round_time_max),startGame, newId())
+	var next_id = newId()
+	curr_timer = globals.create_timer(randf_range(usersettings.round_time_min, usersettings.round_time_max),startGame, next_id)
 
 func resumePrc(id):
 	if !prc_list[id]["active"]:

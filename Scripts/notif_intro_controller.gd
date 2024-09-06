@@ -1,5 +1,5 @@
 extends Control
-
+signal notif_complete
 @onready var boxart = $CenterContainer/TexturePivot/TextureRect
 @onready var boxart_pivot = $CenterContainer/TexturePivot
 @onready var center_container = $CenterContainer
@@ -14,6 +14,7 @@ func _ready() -> void:
 	call_deferred("setup")
 
 func setup() -> void:
+	get_window().set_mouse_passthrough_polygon([])
 	#Get screen size of center container
 	screen_size = center_container.get_rect().size
 	#Scale boxart to screen size
@@ -41,6 +42,7 @@ func clip_2():
 	panel_tw.tween_property(title_panel, "modulate:a", 0, 1.5).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 
 func clip_3():
+	emit_signal("notif_complete")
 	queue_free()
 
 func set_info(title : String, system : String, release : String):

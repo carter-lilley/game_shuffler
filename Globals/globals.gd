@@ -22,7 +22,7 @@ func create_timer(secs: float, function: Callable, arg: Variant = null):
 	timer.autostart = true
 	add_child(timer)  # Add the timer as a child of the current node (assuming this is a Node or Control)
 	# Connect the timeout signal to call the specified function
-	if arg:
+	if arg != null:
 		timer.timeout.connect(function.bind(arg))
 	else:
 		timer.timeout.connect(function)
