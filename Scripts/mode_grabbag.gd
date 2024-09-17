@@ -22,7 +22,7 @@ var prc_blank : Dictionary = {
 }
 
 func _ready() -> void:
-	system_list = exclude_sys(globals.dir_contents(usersettings.rom_dir), ["gc", "n3ds","ps2","ps3","psvita","switch","wii","wiiu", "xbox", "xbox360"])
+	system_list = exclude_sys(globals.dir_contents(usersettings.rom_dir), ["ps4","ps3","psvita"])
 	for i in range(usersettings.bag_size):
 		var entry = rollGame()
 		prc_list.append(entry)
@@ -38,16 +38,53 @@ func rerollGame(i : int):
 	print(prc_list[i])
 
 func rollGame() -> Dictionary:
-	var curr_sys: String = globals.rand_string(system_list)
-	var curr_sys_dir: String = usersettings.rom_dir + "\\" + curr_sys
-	var curr_core = match_core(curr_sys)
-	var games_arr: PackedStringArray = DirAccess.get_files_at(curr_sys_dir)
-	var curr_game: String = globals.rand_string(games_arr)
-	var args: PackedStringArray = ["-L" , usersettings.ra_cores_dir + curr_core , usersettings.rom_dir + "\\" + curr_sys + "\\" + curr_game]
-#	Create new dictionary (Process entry)
 	var newGame: Dictionary = {}
-	newGame["name"] = globals.sanitize_string(curr_game)
-	newGame["plat"] = curr_sys
+	# Create paths
+	var sys: String = globals.rand_string(system_list)
+	var sys_dir: String = usersettings.rom_dir + "\\" + sys
+	var games_arr: PackedStringArray = DirAccess.get_files_at(sys_dir)
+	var game: String = globals.rand_string(games_arr)
+	var game_dir: String = usersettings.rom_dir + "\\" + sys + "\\" + game
+	# Create empty process and argument reference
+	var prc: String
+	var args: PackedStringArray = []
+	match sys:
+		"gc":
+			prc = usersettings.dolphin_dir
+			args = ["-e" , game_dir, "--config" , "Dolphin.Display.Fullscreen=True"]
+		"n3ds":
+			prc = usersettings.citra_dir
+			args = ["-f", "-g", game_dir]
+		"ps2":
+			prc = usersettings.pcsx2_dir
+			args = ["-fullscreen" , game_dir]
+		"ps3":
+			prc = game_dir
+			args = ["--fullscreen"]
+		"psvita":
+			prc = usersettings.vita3k_dir
+		"switch":
+			prc = usersettings.yuzu_dir
+			args = ["-g" , game_dir, "-f"]
+		"wii":
+			prc = usersettings.dolphin_dir
+			args = ["-e" , game_dir, "--config" , "Dolphin.Display.Fullscreen=True"]
+		"wiiu":
+			prc = usersettings.cemu_dir
+			args = ["-g" , game_dir, "-f"]
+		"xbox":
+			prc = usersettings.xemu_dir
+			args = ["-full-screen","-dvd_path", game_dir]
+		"xbox360":
+			prc = usersettings.xenia_dir
+			args = ["--fullscreen=true", game_dir]
+		_:
+			prc = usersettings.ra
+			var curr_core = match_core(sys)
+			args = ["-L" , usersettings.ra_cores_dir + curr_core , game_dir]
+	newGame["name"] = globals.sanitize_string(game)
+	newGame["plat"] = sys
+	newGame["prc"] = prc
 	newGame["args"] = args
 	newGame["pid"] = 0
 	newGame["active"] = false
@@ -62,12 +99,10 @@ var last_pid : int = -1
 func startGame(id : int):
 	sound_player.play()
 	print("Current game: ",prc_list[id]["name"]," Current_ID: ", id, " Last_PID: ", last_pid)
-	#await suspendPrc(last_pid) 
-	#loop through and suspend matching PRCs (Update active status, etc)
-	#Find the current process. if this process is new, create & assign it - else, resume it
+	await suspendPrc(last_pid) 
 	var curr_prc = prc_list[id]
 	if curr_prc["pid"] == 0:
-		curr_prc["pid"] = OS.create_process(usersettings.ra, curr_prc["args"])
+		curr_prc["pid"] = OS.create_process(curr_prc["prc"], curr_prc["args"])
 		if curr_prc["pid"] != 0:
 			curr_prc["active"] = true
 			print("Creating Process: ", curr_prc["pid"])
@@ -80,7 +115,7 @@ func startGame(id : int):
 			print("Failed to create new process.")
 	else:
 		pass
-		#resumePrc(id)
+		resumePrc(id)
 	last_pid = prc_list[id]["pid"]
 	bringtofront(prc_list[id]["pid"])
 	if is_instance_valid(curr_timer):

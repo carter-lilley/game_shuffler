@@ -48,7 +48,11 @@ func dir_contents(path) -> PackedStringArray:
 		return dir_arr
 
 func rand_string(dir_arr: PackedStringArray) -> String:
-	var _str: String = dir_arr[randi() % dir_arr.size()]
+	var _str: String
+	if dir_arr.size() > 0:
+		_str = dir_arr[randi_range(0, dir_arr.size()-1)]
+	else: 
+		push_error("No items found in: ",dir_arr)
 	return _str
 
 func sanitize_string(input: String) -> String:
