@@ -1,5 +1,5 @@
 extends Control
-
+# Need file type checks
 @onready var sound_player = $AudioStreamPlayer2D
 @onready var time_label = $HBoxContainer/VBoxContainer/Label
 @onready var btn_start = $HBoxContainer/VBoxContainer/HBoxContainer/Start
@@ -22,7 +22,7 @@ var prc_blank : Dictionary = {
 }
 
 func _ready() -> void:
-	system_list = exclude_sys(globals.dir_contents(usersettings.rom_dir), ["ps4","ps3","psvita"])
+	system_list = exclude_sys(globals.dir_contents(usersettings.rom_dir), ["ps4"])
 	for i in range(usersettings.bag_size):
 		var entry = rollGame()
 		prc_list.append(entry)
@@ -59,10 +59,14 @@ func rollGame() -> Dictionary:
 			prc = usersettings.pcsx2_dir
 			args = ["-fullscreen" , game_dir]
 		"ps3":
-			prc = game_dir
-			args = ["--fullscreen"]
+			prc = usersettings.rpcs3_dir
+			var link_target = get_lnk_target(game_dir)
+			args = ["--fullscreen", "--no-gui", link_target]
 		"psvita":
+			print("Game: ", game, " pulled from...", games_arr)
 			prc = usersettings.vita3k_dir
+			var game_ID = FileAccess.open(game_dir, FileAccess.READ).get_as_text()
+			args = ["-r" , game_ID]
 		"switch":
 			prc = usersettings.yuzu_dir
 			args = ["-g" , game_dir, "-f"]
@@ -74,7 +78,8 @@ func rollGame() -> Dictionary:
 			args = ["-g" , game_dir, "-f"]
 		"xbox":
 			prc = usersettings.xemu_dir
-			args = ["-full-screen","-dvd_path", game_dir]
+			args = ["-dvd_path", game_dir]
+			#args = ["-full-screen","-dvd_path", game_dir]
 		"xbox360":
 			prc = usersettings.xenia_dir
 			args = ["--fullscreen=true", game_dir]
@@ -262,3 +267,28 @@ func exclude_sys(dir_arr: PackedStringArray, exclusion_arr: Array) -> PackedStri
 		#else:
 			#print("Excluded: ", dir_name)
 	return trimmed_arr
+
+func get_lnk_target(lnk_path: String) -> String:
+	var powershell_cmd = "powershell"
+	var arguments = [
+		"-Command",
+		"$WshShell = New-Object -ComObject WScript.Shell; " +
+		"$Shortcut = $WshShell.CreateShortcut('" + lnk_path + "'); " +
+		"$Shortcut.Arguments"
+		]
+	var output = []
+	var exit_code = OS.execute(powershell_cmd, arguments, output, true)
+	if exit_code == 0:
+		var args_string = String("\n").join(output).strip_edges()
+		#return args_string
+		## Use regex to find the part inside the escaped quotes
+		var regex = RegEx.new()
+		regex.compile(r'"(.*?)"')  # Matches text between double quotes
+		var match = regex.search(args_string)
+		# If a match is found, return the content inside the quotes, otherwise return an empty string
+		if match:
+			return match.get_string(1)
+		else:
+			return "No match found"
+	else:
+		return "Error reading .lnk file"

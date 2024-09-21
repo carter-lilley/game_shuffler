@@ -5,7 +5,7 @@ func _ready() -> void:
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	var current_size = DisplayServer.window_get_size() 
 	var button_bar_size = Vector2(255,84)
-	polygon = [Vector2(0,current_size.y-current_size.y),
+	polygon = [Vector2(0,current_size.y-button_bar_size.y),
 				Vector2(button_bar_size.x,current_size.y-button_bar_size.y),
 				Vector2(button_bar_size.x,current_size.y),
 				Vector2(0,current_size.y)]
@@ -15,9 +15,9 @@ func _ready() -> void:
 #1600, 900
 var screen_size: Vector2 = Vector2(1600,900)
 #-------------------------------
-var bag_size: int = 4
-var round_time_min : float = 20.0
-var round_time_max : float = 20.0
+var bag_size: int = 12
+var round_time_min : float = 45.0
+var round_time_max : float = 180.0
 #-------------------------------
 var rom_dir: String = "Z:\\roms"
 #--------- Standalones
