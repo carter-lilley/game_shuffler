@@ -1,4 +1,4 @@
-Created QEMU launch parameters: D:\Emulation\storage\xemu\xemu.exe -machine xbox,bootrom=D:\Emulation\bios\xemu\mcpx_1.0.bin,kernel-irqchip=off,avpack=hdtv -device smbus-storage,file=D:\Emulation\bios\xemu\eeprom.bin -bios D:\Emulation\bios\xemu\Complex_4627v1.03.bin -m 64 -drive index=0,media=disk,file=D:\Emulation\bios\xemu\xbox_hdd.qcow2,locked=on -drive index=1,media=cdrom,file=Z:\roms\xbox\Spikeout - Battle Street  .iso -display xemu -device usb-hub,port=1,ports=4 -audiodev none,id=snd0 
+Created QEMU launch parameters: D:\Emulation\storage\xemu\xemu.exe -machine xbox,bootrom=D:\Emulation\bios\xemu\mcpx_1.0.bin,kernel-irqchip=off,avpack=hdtv -device smbus-storage,file=D:\Emulation\bios\xemu\eeprom.bin -bios D:\Emulation\bios\xemu\Complex_4627v1.03.bin -m 64 -drive index=0,media=disk,file=D:\Emulation\bios\xemu\xbox_hdd.qcow2,locked=on -drive index=1,media=cdrom,file=Z:\roms\xbox\Dennou Taisen - DroneZ .iso -display xemu -device usb-hub,port=1,ports=4 -audiodev none,id=snd0 
 xemu_version: 0.7.132
 xemu_branch: master
 xemu_commit: 8707d2aa2626063cb67b5ea20382584a0848dce7
@@ -12,4 +12,3 @@ GL_RENDERER: NVIDIA GeForce RTX 3090/PCIe/SSE2
 GL_VERSION: 4.0.0 NVIDIA 561.09
 GL_SHADING_LANGUAGE_VERSION: 4.00 NVIDIA via Cg compiler
 audio: Device ac97: audiodev default parameter is deprecated, please specify audiodev=snd0
-Resetting rate control (11906095 frames)

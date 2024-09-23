@@ -63,7 +63,6 @@ func rollGame() -> Dictionary:
 			var link_target = get_lnk_target(game_dir)
 			args = ["--fullscreen", "--no-gui", link_target]
 		"psvita":
-			print("Game: ", game, " pulled from...", games_arr)
 			prc = usersettings.vita3k_dir
 			var game_ID = FileAccess.open(game_dir, FileAccess.READ).get_as_text()
 			args = ["-r" , game_ID]
@@ -107,6 +106,7 @@ func startGame(id : int):
 	await suspendPrc(last_pid) 
 	var curr_prc = prc_list[id]
 	if curr_prc["pid"] == 0:
+		notifman.notif_load(4.0)
 		curr_prc["pid"] = OS.create_process(curr_prc["prc"], curr_prc["args"])
 		if curr_prc["pid"] != 0:
 			curr_prc["active"] = true
@@ -119,7 +119,7 @@ func startGame(id : int):
 		else:
 			print("Failed to create new process.")
 	else:
-		pass
+		notifman.notif_load(1.0)
 		resumePrc(id)
 	last_pid = prc_list[id]["pid"]
 	bringtofront(prc_list[id]["pid"])

@@ -1,6 +1,21 @@
 extends Node
 var timer_list: Array
 
+#add ability to use existing tween?
+func new_tween(node: Node, property: String, target: Variant, duration: float,
+					_ease: Tween.EaseType = Tween.EASE_IN_OUT, _trans: Tween.TransitionType = Tween.TRANS_LINEAR, 
+					delay: float = 0.0,
+					relative: bool = false,
+					method = null) -> Tween:	
+	var tween = node.create_tween()
+	if method != null:
+		tween.connect("finished", method)
+	if relative:
+		tween.tween_property(node, property, target, duration).set_trans(_trans).set_ease(_ease).as_relative().set_delay(delay)
+	else:
+		tween.tween_property(node, property, target, duration).set_trans(_trans).set_ease(_ease).set_delay(delay)
+	return tween
+
 func timers_pause(state : bool):
 	for timer in timer_list:
 		if timer.is_inside_tree():
