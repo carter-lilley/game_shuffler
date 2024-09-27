@@ -4,7 +4,7 @@ var url_auth = "https://id.twitch.tv/oauth2/token"
 var game_query = "https://api.igdb.com/v4/games"
 var cover_query = "https://api.igdb.com/v4/covers"
 var client_id : String = "vq8irgof6mycds0jjox37jsuekoz52"
-var client_secret : String = "3itbm4miw51xr9tuw8shwp2u7zbnf1"
+var client_secret : String = "87ql51uffe48uyvmzdzk1l3dd66vdo"
 var grant_type : String = "client_credentials"
 
 func _ready():
