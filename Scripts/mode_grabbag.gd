@@ -22,7 +22,7 @@ var prc_blank : Dictionary = {
 }
 
 func _ready() -> void:
-	system_list = exclude_sys(globals.dir_contents(usersettings.rom_dir), ["ps4"])
+	system_list = exclude_sys(globals.dir_contents(usersettings.rom_dir), ["ps4", "steam"])
 	for i in range(usersettings.bag_size):
 		var entry = rollGame()
 		prc_list.append(entry)
@@ -66,6 +66,8 @@ func rollGame() -> Dictionary:
 			prc = usersettings.vita3k_dir
 			var game_ID = FileAccess.open(game_dir, FileAccess.READ).get_as_text()
 			args = ["-r" , game_ID]
+		"steam":
+			prc = game_dir
 		"switch":
 			prc = usersettings.yuzu_dir
 			args = ["-g" , game_dir, "-f"]
@@ -106,7 +108,7 @@ func startGame(id : int):
 	await suspendPrc(last_pid) 
 	var curr_prc = prc_list[id]
 	if curr_prc["pid"] == 0:
-		notifman.notif_load(4.0)
+		notifman.notif_load(10.0)
 		curr_prc["pid"] = OS.create_process(curr_prc["prc"], curr_prc["args"])
 		if curr_prc["pid"] != 0:
 			curr_prc["active"] = true
@@ -225,6 +227,8 @@ func match_core(sys : String) -> String:
 			current_core = usersettings.core_gbc
 		"genesis":
 			current_core = usersettings.core_genesis
+		"mame":
+			current_core = usersettings.core_mame
 		"mastersystem":
 			current_core = usersettings.core_mastersystem
 		"n64":
