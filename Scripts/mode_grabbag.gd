@@ -23,7 +23,7 @@ var prc_blank : Dictionary = {
 
 func _ready() -> void:
 	randomize()
-	system_list = exclude_sys(globals.dir_contents(usersettings.rom_dir), ["3do","n64", "dreamcast", "gc", "wii", "psx", "ps2", "atari2600","atarilynx","dos","gamegear","gb","gba","gbc","genesis","mastersystem","nds","nes","ngpc","saturn", "sega32x", "segacd","sg1000","snes", "tg16","tgcd","ps4", "steam"])
+	system_list = exclude_sys(globals.dir_contents(usersettings.rom_dir), ["psvita","xbox360","psp","3do","n64", "dreamcast", "gc", "wii", "psx", "ps2", "atari2600","atarilynx","dos","gamegear","gb","gba","gbc","genesis","mastersystem","nds","nes","ngpc","saturn", "sega32x", "segacd","sg1000","snes", "tg16","tgcd","ps4", "steam"])
 	#["3do","atari2600","atarilynx","dos","gamegear","gb","gba","gbc","genesis","mastersystem","nds","nes","ngpc","saturn","tg16","tgcd"]
 	for i in range(usersettings.bag_size):
 		var entry = rollGame()
@@ -47,6 +47,16 @@ func rollGame() -> Dictionary:
 	var games_arr: PackedStringArray = DirAccess.get_files_at(sys_dir)
 	var game: String = globals.rand_string(games_arr)
 	var game_dir: String = usersettings.rom_dir + "\\" + sys + "\\" + game
+	# Sanitize game name and check for duplicates
+	var game_name: String = globals.sanitize_string(game)
+	# Check for duplicate names in prc_list
+	for prc in prc_list:
+		if prc["plat"] == "ps3" and sys == "ps3":
+			print("Second PS3 instance...", game_name, " Rerolling...")
+			return rollGame()  # Recursively re-call rollGame if a duplicate is found
+		if prc["name"] == game_name:
+			print("Duplicate game found: ", game_name, " Rerolling...")
+			return rollGame()  # Recursively re-call rollGame if a duplicate is found
 	# Create empty process and argument reference
 	var prc: String
 	var args: PackedStringArray = []
@@ -55,7 +65,7 @@ func rollGame() -> Dictionary:
 			prc = usersettings.dolphin_dir
 			args = ["-e" , game_dir, "--config" , "Dolphin.Display.Fullscreen=True"]
 		"n3ds":
-			prc = usersettings.citra_dir
+			prc = usersettings.lime3ds_dir
 			args = ["-f", "-g", game_dir]
 		"ps2":
 			prc = usersettings.pcsx2_dir
@@ -73,8 +83,8 @@ func rollGame() -> Dictionary:
 		"switch":
 			#prc = usersettings.yuzu_dir
 			prc = usersettings.sudachi_dir
-			args = ["-r", "D:\\Emulation\\saves\\ryujinx", game_dir, "--fullscreen"]
-			#args = ["-g" , game_dir]
+			#args = ["-r", "D:\\Emulation\\saves\\ryujinx", game_dir, "--fullscreen"]
+			args = ["-g" , game_dir,"-f"]
 		"wii":
 			prc = usersettings.dolphin_dir
 			args = ["-e" , game_dir, "--config" , "Dolphin.Display.Fullscreen=True"]
@@ -107,32 +117,73 @@ func _process(_delta: float) -> void:
 
 var last_pid : int = -1
 func startGame(id : int):
+	var load_screen = notifman.notif_load()
+	load_screen.close()
 	sound_player.play()
+	print("NEW GAME START!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 	print("Current game: ",prc_list[id]["name"]," Current_ID: ", id, " Last_PID: ", last_pid)
+	# Suspend previous process...
 	await suspendPrc(last_pid) 
+	
 	var curr_prc = prc_list[id]
-	if curr_prc["pid"] == 0:
-		notifman.notif_load(10.0)
-		curr_prc["pid"] = OS.create_process(curr_prc["prc"], curr_prc["args"])
-		if curr_prc["pid"] != 0:
+	var retry_count = 0
+	var max_retries = 4
+	var process_created = false
+	
+	# Resume process if it is already running
+	if OS.is_process_running(curr_prc["pid"]):
+		process_created = true
+		print(curr_prc["pid"], " already exists. Resuming...")
+		resumePrc(id)
+		
+	#Else, create it...
+	while retry_count < max_retries and !process_created:
+		# Try to create the process if it's not running
+		if !OS.is_process_running(curr_prc["pid"]):
+			curr_prc["pid"] = OS.create_process(curr_prc["prc"], curr_prc["args"])
+			print("Attempting to create process... ", curr_prc["pid"])
+		# Wait for 3 seconds and check if the process is running
+		await get_tree().create_timer(3.0).timeout
+		if OS.is_process_running(curr_prc["pid"]): # Process is running...
 			curr_prc["active"] = true
-			print("Creating Process: ", curr_prc["pid"])
-			var game_qry = await IGDB.query_game(prc_list[id]["name"],prc_list[id]["plat"])
-			if game_qry["name"] == "":
+			process_created = true
+			print("Process confirmed to be running after ", (retry_count + 1) * 3, " seconds.")
+			# Query game information
+			var game_qry = await IGDB.query_game(prc_list[id]["name"], prc_list[id]["plat"])
+			var game_name = game_qry["name"]
+			if game_name == "":
 				notifman.notif_intro(game_qry["tex"], prc_list[id]["name"], str(prc_list[id]["plat"]), str(game_qry["release"]))
 			else:
 				notifman.notif_intro(game_qry["tex"], game_qry["name"], str(prc_list[id]["plat"]), str(game_qry["release"]))
+			break  # Exit the retry loop since the process is running
 		else:
-			print("Failed to create new process.")
-	else:
-		notifman.notif_load(1.0)
-		resumePrc(id)
+			print("Process not running, retrying... (Attempt ", retry_count + 1, ")")
+			retry_count += 1
+
+	# If process creation failed after all attempts, reroll a new game
+	if !process_created:
+		curr_prc["active"] = false
+		print("Failed to create process after ", max_retries, " attempts, rerolling...")
+		rerollGame(id)
+		# Restart the process after reroll
+		startGame(id)
+
+	# End the loading screen, update the last PID, and bring the new prc to front
+	load_screen.open()
 	last_pid = prc_list[id]["pid"]
 	bringtofront(prc_list[id]["pid"])
+	# Stop the current timer and start a new one for the next round
 	if is_instance_valid(curr_timer):
 		curr_timer.stop()
 	var next_id = newId()
 	curr_timer = globals.create_timer(randf_range(usersettings.round_time_min, usersettings.round_time_max),startGame, next_id)
+	#while curr_timer.time_left > 0.0:
+		#await get_tree().create_timer(1.0).timeout  # Check every 1 second
+		#if !OS.is_process_running(curr_prc["pid"]):
+			#print("Process crashed! Rerolling new game...")
+			#curr_prc["active"] = false
+			#rerollGame(id)
+			#startGame(id)
 
 func resumePrc(id):
 	if !prc_list[id]["active"]:
@@ -206,7 +257,7 @@ func bringtofront(pid: int):
 	]
 	var output = []
 	OS.execute("powershell.exe", args, output, true)
-	print("Output:", output)  # Output array contains the entire shell output as a single String element
+	print("Bring to front output:", output)  # Output array contains the entire shell output as a single String element
 
 func match_core(sys : String) -> String:
 	var current_core: String
@@ -277,6 +328,7 @@ func exclude_sys(dir_arr: PackedStringArray, exclusion_arr: Array) -> PackedStri
 	return trimmed_arr
 
 func get_lnk_target(lnk_path: String) -> String:
+	print("PS3 Lnk Path...",lnk_path)
 	var powershell_cmd = "powershell"
 	var arguments = [
 		"-Command",
@@ -288,14 +340,15 @@ func get_lnk_target(lnk_path: String) -> String:
 	var exit_code = OS.execute(powershell_cmd, arguments, output, true)
 	if exit_code == 0:
 		var args_string = String("\n").join(output).strip_edges()
+		print("Constructing PS3 arg string...", args_string)
 		#return args_string
 		## Use regex to find the part inside the escaped quotes
 		var regex = RegEx.new()
 		regex.compile(r'"(.*?)"')  # Matches text between double quotes
-		var match = regex.search(args_string)
+		var reg_match = regex.search(args_string)
 		# If a match is found, return the content inside the quotes, otherwise return an empty string
-		if match:
-			return match.get_string(1)
+		if reg_match:
+			return reg_match.get_string(1)
 		else:
 			return "No match found"
 	else:

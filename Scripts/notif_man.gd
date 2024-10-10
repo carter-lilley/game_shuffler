@@ -14,10 +14,9 @@ func notif_intro(tex : Texture2D, title : String, system : String, release : Str
 		notif_intro_inst.set_art(tex)
 
 @onready var notif_load_asset = preload("res://Scenes/notifs/notif_load.tscn") 
-func notif_load(passed_time : float):
+func notif_load():
 	notif_start()
 	var notif_load_asset = notif_load_asset.instantiate()
-	notif_load_asset.load_time = passed_time
 	notif_load_asset.connect("notif_complete",notif_compelte)
 	add_child(notif_load_asset)
 	return notif_load_asset

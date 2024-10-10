@@ -22,7 +22,7 @@ var round_time_max : float = 180.0
 var rom_dir: String = "Z:\\roms"
 #--------- Standalones
 var cemu_dir: String = "D:\\Emulation\\storage\\cemu\\Cemu.exe"
-var citra_dir: String = "D:\\Emulation\\storage\\citra\\citra-qt.exe"
+var lime3ds_dir: String = "D:\\Emulation\\storage\\lime3ds\\lime3ds.exe"
 var dolphin_dir: String = "D:\\Emulation\\storage\\dolphin\\Dolphin.exe"
 var pcsx2_dir: String = "D:\\Emulation\\storage\\pcsx2\\pcsx2-qt.exe"
 var rpcs3_dir: String = "D:\\Emulation\\storage\\rpcs3\\rpcs3.exe"
