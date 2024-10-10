@@ -22,7 +22,9 @@ var prc_blank : Dictionary = {
 }
 
 func _ready() -> void:
-	system_list = exclude_sys(globals.dir_contents(usersettings.rom_dir), ["ps4", "steam"])
+	randomize()
+	system_list = exclude_sys(globals.dir_contents(usersettings.rom_dir), ["3do","n64", "dreamcast", "gc", "wii", "psx", "ps2", "atari2600","atarilynx","dos","gamegear","gb","gba","gbc","genesis","mastersystem","nds","nes","ngpc","saturn", "sega32x", "segacd","sg1000","snes", "tg16","tgcd","ps4", "steam"])
+	#["3do","atari2600","atarilynx","dos","gamegear","gb","gba","gbc","genesis","mastersystem","nds","nes","ngpc","saturn","tg16","tgcd"]
 	for i in range(usersettings.bag_size):
 		var entry = rollGame()
 		prc_list.append(entry)
@@ -69,8 +71,10 @@ func rollGame() -> Dictionary:
 		"steam":
 			prc = game_dir
 		"switch":
-			prc = usersettings.yuzu_dir
-			args = ["-g" , game_dir, "-f"]
+			#prc = usersettings.yuzu_dir
+			prc = usersettings.sudachi_dir
+			args = ["-r", "D:\\Emulation\\saves\\ryujinx", game_dir, "--fullscreen"]
+			#args = ["-g" , game_dir]
 		"wii":
 			prc = usersettings.dolphin_dir
 			args = ["-e" , game_dir, "--config" , "Dolphin.Display.Fullscreen=True"]

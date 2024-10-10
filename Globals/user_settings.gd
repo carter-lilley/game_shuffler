@@ -29,7 +29,8 @@ var rpcs3_dir: String = "D:\\Emulation\\storage\\rpcs3\\rpcs3.exe"
 var vita3k_dir: String = "D:\\Emulation\\storage\\Vita3k\\Vita3K.exe"
 var xemu_dir: String = "D:\\Emulation\\storage\\xemu\\xemu.exe"
 var xenia_dir: String = "D:\\Emulation\\storage\\xenia\\xenia_canary.exe"
-var yuzu_dir: String = "D:\\Emulation\\storage\\yuzu\\yuzu.exe"
+var sudachi_dir: String = "D:\\Emulation\\storage\\sudachi\\sudachi-cmd.exe"
+var ryujinx_dir: String = "D:\\Emulation\\storage\\ryujinx\\Ryujinx.exe"
 #--------- RA
 var ra_local: String = ProjectSettings.globalize_path("res://tools/retroarch/retroarch.exe")
 var ra_dir: String = "D:\\Emulation\\storage\\retroarch"

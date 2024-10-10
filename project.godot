@@ -32,6 +32,10 @@ window/size/always_on_top=true
 window/size/transparent=true
 window/per_pixel_transparency/allowed=true
 
+[network]
+
+tls/certificate_bundle_override="res://tools/ca-certificates.crt"
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
