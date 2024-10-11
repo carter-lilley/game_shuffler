@@ -23,8 +23,8 @@ var prc_blank : Dictionary = {
 
 func _ready() -> void:
 	randomize()
-	system_list = exclude_sys(globals.dir_contents(usersettings.rom_dir), ["xbox","wiiu","switch","psvita","xbox360","psp","3do","n64", "dreamcast", "gc", "wii", "psx", "ps2", "atari2600","atarilynx","dos","gamegear","gb","gba","gbc","genesis","mastersystem","nds","nes","ngpc","saturn", "sega32x", "segacd","sg1000","snes", "tg16","tgcd","ps4", "steam"])
-	#["3do","atari2600","atarilynx","dos","gamegear","gb","gba","gbc","genesis","mastersystem","nds","nes","ngpc","saturn","tg16","tgcd"]
+	system_list = exclude_sys(globals.dir_contents(usersettings.rom_dir), ["ps4", "steam"])
+	#["mame","psvita","xbox", "xbox360","psp","3do","n64", "dreamcast", "gc", "wii", "wiiu","switch", "psx", "ps2", "ps3", "atari2600","atarilynx","dos","gamegear","gb","gba","gbc","genesis","mastersystem","nds","nes","ngpc","saturn", "sega32x", "segacd","sg1000","snes", "tg16","tgcd","ps4", "steam"]
 	for i in range(usersettings.bag_size):
 		var entry = rollGame()
 		prc_list.append(entry)
@@ -51,9 +51,9 @@ func rollGame() -> Dictionary:
 	var game_name: String = globals.sanitize_string(game)
 	# Check for duplicate names in prc_list
 	for prc in prc_list:
-		if prc["plat"] == "ps3" and sys == "ps3":
-			print("Second PS3 instance...", game_name, " Rerolling...")
-			return rollGame()  # Recursively re-call rollGame if a duplicate is found
+		if prc["plat"] == sys:
+			print("Second ", sys, " instance...", game_name, " Rerolling...")
+			return rollGame()
 		if prc["name"] == game_name:
 			print("Duplicate game found: ", game_name, " Rerolling...")
 			return rollGame()  # Recursively re-call rollGame if a duplicate is found
