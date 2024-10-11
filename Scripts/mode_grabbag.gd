@@ -23,7 +23,7 @@ var prc_blank : Dictionary = {
 
 func _ready() -> void:
 	randomize()
-	system_list = exclude_sys(globals.dir_contents(usersettings.rom_dir), ["psvita","xbox360","psp","3do","n64", "dreamcast", "gc", "wii", "psx", "ps2", "atari2600","atarilynx","dos","gamegear","gb","gba","gbc","genesis","mastersystem","nds","nes","ngpc","saturn", "sega32x", "segacd","sg1000","snes", "tg16","tgcd","ps4", "steam"])
+	system_list = exclude_sys(globals.dir_contents(usersettings.rom_dir), ["xbox","wiiu","switch","psvita","xbox360","psp","3do","n64", "dreamcast", "gc", "wii", "psx", "ps2", "atari2600","atarilynx","dos","gamegear","gb","gba","gbc","genesis","mastersystem","nds","nes","ngpc","saturn", "sega32x", "segacd","sg1000","snes", "tg16","tgcd","ps4", "steam"])
 	#["3do","atari2600","atarilynx","dos","gamegear","gb","gba","gbc","genesis","mastersystem","nds","nes","ngpc","saturn","tg16","tgcd"]
 	for i in range(usersettings.bag_size):
 		var entry = rollGame()
