@@ -248,7 +248,7 @@ func _remove() -> void:
 			startGame(i)
 
 func bringtofront(pid: int):
-	var bringgtofront_path = ProjectSettings.globalize_path("res://tools/bringtofront.ps1")
+	var bringgtofront_path = ProjectSettings.globalize_path("res://tools/switchtowindow.ps1")
 	#print(bringgtofront_path)
 	var args = [
 		"-Command",
