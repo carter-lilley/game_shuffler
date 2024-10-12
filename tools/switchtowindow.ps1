@@ -33,7 +33,7 @@ function goto
         # Attempt to bring the window to the foreground
         if ([Program]::SetForegroundWindow($hwnd)) {
             Write-Host "Successfully brought process with PID $process_id to the foreground."
-        } elseif {
+        } elseif ([Program]::SwitchToThisWindow($hwnd, $false)) {
             Write-Host "SetForegroundWindow failed, trying SwitchToThisWindow."
             [Program]::SwitchToThisWindow($hwnd, $false)
         } else {
@@ -41,7 +41,7 @@ function goto
             [Program]::SetWindowPos($hwnd, [Program]::HWND_TOPMOST, 0, 0, 0, 0, [Program]::TOPMOST_FLAGS)
             Write-Host "Set window with PID $process_id as topmost."
         }
-        
+
         # Always try to set the window as active
         [Program]::SetActiveWindow($hwnd)
         Write-Host "SetActiveWindow called for process with PID $process_id."
