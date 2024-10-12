@@ -1,4 +1,5 @@
-function goto {
+function goto 
+{
     [CmdletBinding()]
     param (
         [int]$process_id = 0
@@ -9,40 +10,42 @@ function goto {
     using System.Runtime.InteropServices;
     public class Program {
         [DllImport("user32.dll")]
-        public static extern bool AllowSetForegroundWindow(int dwProcessId);
-        
-        [DllImport("user32.dll")]
-        public static extern void SwitchToThisWindow(IntPtr hWnd, bool fAltTab);
-
-        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetForegroundWindow(IntPtr hWnd);
 
         [DllImport("user32.dll")]
-        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetActiveWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        public static extern void SwitchToThisWindow(IntPtr hWnd, bool fAltTab);
         
-        public const int SW_RESTORE = 9;  // Restores the window if minimized
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
     }
 "@
 
-    try {
-        $process = Get-Process -Id $process_id -ErrorAction Stop
-        if ($process -ne $null -and $process.MainWindowHandle -ne 0) {
-            $hwnd = $process.MainWindowHandle
-            
-            # Allow the process to take foreground
-            [Program]::AllowSetForegroundWindow($process_id) | Out-Null
-            
-            # Restore window if it's minimized
-            [Program]::ShowWindow($hwnd, [Program]::SW_RESTORE)
-            
-            # Attempt to bring the window to the foreground
-            [Program]::SetForegroundWindow($hwnd)
+    $process = Get-Process -Id $process_id -ErrorAction SilentlyContinue
+    if ($process -ne $null -and $process.MainWindowHandle -ne 0) {
+        $hwnd = $process.MainWindowHandle
 
-            Write-Host "Successfully switched to process with PID $process_id."
+        # Attempt to bring the window to the foreground
+        if ([Program]::SetForegroundWindow($hwnd)) {
+            Write-Host "Successfully brought process with PID $process_id to the foreground."
+        } elseif {
+            Write-Host "SetForegroundWindow failed, trying SwitchToThisWindow."
+            [Program]::SwitchToThisWindow($hwnd, $false)
         } else {
-            Write-Host "Process with PID $process_id is not running or does not have a MainWindowHandle."
+            Write-Host "Both SetForegroundWindow and SwitchToThisWindow failed, setting window as topmost."
+            [Program]::SetWindowPos($hwnd, [Program]::HWND_TOPMOST, 0, 0, 0, 0, [Program]::TOPMOST_FLAGS)
+            Write-Host "Set window with PID $process_id as topmost."
         }
-    } catch {
-        Write-Host "Error: $_"
+        
+        # Always try to set the window as active
+        [Program]::SetActiveWindow($hwnd)
+        Write-Host "SetActiveWindow called for process with PID $process_id."
+    } else {
+        Write-Host "Process with PID $process_id is not running or does not have a MainWindowHandle."
     }
 }

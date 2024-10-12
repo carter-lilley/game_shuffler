@@ -1,4 +1,4 @@
-Created QEMU launch parameters: D:\Emulation\storage\xemu\xemu.exe -machine xbox,bootrom=D:\Emulation\bios\xemu\mcpx_1.0.bin,short-animation=on,kernel-irqchip=off,avpack=hdtv -device smbus-storage,file=D:\Emulation\bios\xemu\eeprom.bin -bios D:\Emulation\bios\xemu\Complex_4627v1.03.bin -m 64 -drive index=0,media=disk,file=D:\Emulation\bios\xemu\xbox_hdd.qcow2,locked=on -drive index=1,media=cdrom,file=Z:\roms\xbox\Phantom Crash .iso -display xemu -device usb-hub,port=1,ports=4 -audiodev none,id=snd0 
+Created QEMU launch parameters: D:\Emulation\storage\xemu\xemu.exe -machine xbox,bootrom=D:\Emulation\bios\xemu\mcpx_1.0.bin,short-animation=on,kernel-irqchip=off,avpack=hdtv -device smbus-storage,file=D:\Emulation\bios\xemu\eeprom.bin -bios D:\Emulation\bios\xemu\Complex_4627v1.03.bin -m 64 -drive index=0,media=disk,file=D:\Emulation\bios\xemu\xbox_hdd.qcow2,locked=on -drive index=1,media=cdrom,file=Z:\roms\xbox\Sims 2 The .iso -display xemu -device usb-hub,port=1,ports=4 -audiodev none,id=snd0 
 xemu_version: 0.7.132
 xemu_branch: master
 xemu_commit: 8707d2aa2626063cb67b5ea20382584a0848dce7
