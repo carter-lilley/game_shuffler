@@ -23,6 +23,9 @@ function goto
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+        public const int HWND_TOPMOST = -1;
+        public const uint TOPMOST_FLAGS = 0x0002; // SWP_NOSIZE | SWP_NOMOVE
     }
 "@
 
@@ -38,14 +41,16 @@ function goto
             [Program]::SwitchToThisWindow($hwnd, $false)
         } else {
             Write-Host "Both SetForegroundWindow and SwitchToThisWindow failed, setting window as topmost."
-            [Program]::SetWindowPos($hwnd, [Program]::HWND_TOPMOST, 0, 0, 0, 0, [Program]::TOPMOST_FLAGS)
+            [Program]::SetWindowPos($hwnd, [Program]::HWND_TOPMOST, 0, 0, 0, 0, [Program]::TOPMOST_FLAGS) | Out-Null
             Write-Host "Set window with PID $process_id as topmost."
         }
 
         # Always try to set the window as active
         [Program]::SetActiveWindow($hwnd)
         Write-Host "SetActiveWindow called for process with PID $process_id."
-    } else {
+    } 
+    else 
+    {
         Write-Host "Process with PID $process_id is not running or does not have a MainWindowHandle."
     }
 }
