@@ -237,12 +237,14 @@ func newId() -> int:
 	return -1
 	
 func _skip() -> void:
+	globals.timers_kill()
 	startGame(newId())
 
 func _remove() -> void:
 	for i in range(prc_list.size()):
 		var entry = prc_list[i]
 		if entry.has("pid") and entry["pid"] == last_pid:
+			globals.timers_kill()
 			OS.kill(last_pid)
 			rerollGame(i)
 			startGame(i)
