@@ -31,6 +31,7 @@ func notif_settings(caller : Node):
 
 func update_list(caller : Node, system_dic: Dictionary):
 	print("List updated.")
+	print(system_dic)
 	usersettings.system_dictionary = system_dic
 	notif_compelte(caller)
 

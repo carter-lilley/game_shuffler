@@ -169,22 +169,21 @@ func _ready() -> void:
 
 func _on_button_toggled(toggled: bool, system : String) -> void:
 	if toggled:
+		print(system, " set to false")
 		system_states[system]["state"] = false
-		print(system_states)
 	else:
-		system_states[system]["state"] = false
+		print(system, " set to true")
+		system_states[system]["state"] = true
 
 func _on_none_pressed() -> void:
 	for system in system_states:
 		system_states[system]["state"] = false
-		print(system_states)
 	for button in grid_container.get_children():
 		button.set_pressed_no_signal(true)
 
 func _on_all_pressed() -> void:
 	for system in system_states:
 		system_states[system]["state"] = true
-		print(system_states)
 	for button in grid_container.get_children():
 		button.set_pressed_no_signal(false)
 

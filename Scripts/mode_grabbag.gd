@@ -59,9 +59,9 @@ func rollGame() -> Dictionary:
 	var game_name: String = globals.sanitize_string(game)
 	# Check for duplicate names in prc_list
 	for prc in prc_list:
-		if prc["plat"] == sys:
-			print("Second ", sys, " instance...", game_name, " Rerolling...")
-			return rollGame()
+		#if prc["plat"] == sys:
+			#print("Second ", sys, " instance...", game_name, " Rerolling...")
+			#return rollGame()
 		if prc["name"] == game_name:
 			print("Duplicate game found: ", game_name, " Rerolling...")
 			return rollGame()  # Recursively re-call rollGame if a duplicate is found
