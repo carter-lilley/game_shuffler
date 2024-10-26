@@ -21,6 +21,19 @@ func notif_load():
 	add_child(notif_load_asset)
 	return notif_load_asset
 
+@onready var settings_menu_asset = preload("res://Scenes/system_menu.tscn") 
+func notif_settings(caller : Node):
+	notif_start()
+	var settings_menu = settings_menu_asset.instantiate()
+	settings_menu.connect("update_and_close",update_list)
+	add_child(settings_menu)
+	return settings_menu
+
+func update_list(caller : Node, system_dic: Dictionary):
+	print("List updated.")
+	usersettings.system_dictionary = system_dic
+	notif_compelte(caller)
+
 func notif_start():
 # Increment the active notifications counter
 	active_notifications += 1

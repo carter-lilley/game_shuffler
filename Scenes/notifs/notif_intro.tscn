@@ -5,7 +5,7 @@
 [ext_resource type="Theme" uid="uid://r7auhejeh823" path="res://Themes/panel_theme.tres" id="2_bt6pu"]
 [ext_resource type="FontFile" uid="uid://bhwdfdifwm12r" path="res://Fonts/Impact/impact.ttf" id="2_rdjiu"]
 [ext_resource type="FontFile" uid="uid://corxc3kvlwll0" path="res://Fonts/Univers/UniversRegular.ttf" id="3_ttny6"]
-[ext_resource type="Script" path="res://Scenes/notifs/autoscale_label.gd" id="4_oi772"]
+[ext_resource type="Script" path="res://Scripts/autoscale_label.gd" id="4_oi772"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_p525s"]
 font = ExtResource("2_rdjiu")

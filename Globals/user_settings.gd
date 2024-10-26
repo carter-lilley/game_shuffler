@@ -1,10 +1,12 @@
 extends Node
 
+var system_dictionary : Dictionary
+
 var polygon : PackedVector2Array = []
 func _ready() -> void:
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	var current_size = DisplayServer.window_get_size() 
-	var button_bar_size = Vector2(255,84)
+	var button_bar_size = Vector2(325,84)
 	polygon = [Vector2(0,current_size.y-button_bar_size.y),
 				Vector2(button_bar_size.x,current_size.y-button_bar_size.y),
 				Vector2(button_bar_size.x,current_size.y),

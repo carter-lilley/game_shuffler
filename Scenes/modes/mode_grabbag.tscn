@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://vf05yu8hwe1m"]
+[gd_scene load_steps=13 format=3 uid="uid://vf05yu8hwe1m"]
 
 [ext_resource type="Script" path="res://Scripts/mode_grabbag.gd" id="1_0pk6d"]
 [ext_resource type="Texture2D" uid="uid://dhelt10flog05" path="res://Sprites/ui_icons/1x/pause.png" id="1_4rgtf"]
@@ -6,6 +6,7 @@
 [ext_resource type="AudioStream" uid="uid://cjade33mfa1sg" path="res://Sounds/Chime.wav" id="3_tanc2"]
 [ext_resource type="Texture2D" uid="uid://obmpq4l4uwm5" path="res://Sprites/ui_icons/1x/cross.png" id="4_2ucpa"]
 [ext_resource type="Texture2D" uid="uid://b022tynb5hjol" path="res://Sprites/ui_icons/1x/forward.png" id="4_urtub"]
+[ext_resource type="Texture2D" uid="uid://h6q3wtvw3c6j" path="res://Sprites/ui_icons/1x/gear.png" id="6_oam54"]
 [ext_resource type="Texture2D" uid="uid://j4cmw1ripp26" path="res://Sprites/ui_icons/1x/next.png" id="6_r3txv"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wb2bi"]
@@ -69,6 +70,11 @@ layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_4ki21")
 icon = ExtResource("6_r3txv")
 
+[node name="Settings" type="Button" parent="HBoxContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_4ki21")
+icon = ExtResource("6_oam54")
+
 [node name="user_settings" type="Node" parent="."]
 script = ExtResource("2_0als8")
 
@@ -79,3 +85,4 @@ stream = ExtResource("3_tanc2")
 [connection signal="toggled" from="HBoxContainer/VBoxContainer/HBoxContainer/Pause" to="." method="_pause"]
 [connection signal="pressed" from="HBoxContainer/VBoxContainer/HBoxContainer/Remove" to="." method="_remove"]
 [connection signal="pressed" from="HBoxContainer/VBoxContainer/HBoxContainer/Skip" to="." method="_skip"]
+[connection signal="pressed" from="HBoxContainer/VBoxContainer/HBoxContainer/Settings" to="." method="_on_settings_pressed"]

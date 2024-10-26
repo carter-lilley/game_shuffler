@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://Scenes/notifs/notif_load.gd" id="1_p5tru"]
 [ext_resource type="Shader" path="res://Scenes/notifs/notif_load_text.gdshader" id="3_h1v2t"]
 [ext_resource type="FontFile" uid="uid://1poihseyfunj" path="res://Fonts/Univers/UniversBold.ttf" id="3_lrdms"]
-[ext_resource type="Script" path="res://Scenes/notifs/loading_label.gd" id="5_moa8s"]
+[ext_resource type="Script" path="res://Scripts/loading_label.gd" id="5_moa8s"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_utp7s"]
 shader = ExtResource("1_dji3i")

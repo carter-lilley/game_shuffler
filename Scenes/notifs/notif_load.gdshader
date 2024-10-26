@@ -31,7 +31,7 @@ void fragment() {
     float pattern = mod(check.x + check.y, 2.0);
     // Mix the two colors based on the checker pattern
     vec4 checkers = mix(color1, color2, pattern);
-	
+
 	checkers.a *= transition_alpha;
     //// Output the color
     COLOR = checkers;

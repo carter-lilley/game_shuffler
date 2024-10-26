@@ -11,7 +11,7 @@ extends Control
 
 var pssuspend_path = ProjectSettings.globalize_path("res://tools/pssuspend.exe")
 
-var system_list: PackedStringArray
+var active_systems : PackedStringArray
 var prc_list: Array 
 var prc_blank : Dictionary = {
 	"name": "",
@@ -23,8 +23,16 @@ var prc_blank : Dictionary = {
 
 func _ready() -> void:
 	randomize()
-	system_list = exclude_sys(globals.dir_contents(usersettings.rom_dir), ["wiiu","switch","ps4", "steam"])
-	#["mame","psvita","xbox", "xbox360","psp","3do","n64", "dreamcast", "gc", "wii", "wiiu","switch", "psx", "ps2", "ps3", "atari2600","atarilynx","dos","gamegear","gb","gba","gbc","genesis","mastersystem","nds","nes","ngpc","saturn", "sega32x", "segacd","sg1000","snes", "tg16","tgcd","ps4", "steam"]
+
+func get_active_systems(system_list: Dictionary) -> Array:
+	var active_systems = []
+	for system_name in system_list:
+		if system_list[system_name].get("state", false):  # default to false if "state" key is missing
+			active_systems.append(system_name)
+	return active_systems
+
+func set_entries():
+	active_systems = get_active_systems(usersettings.system_dictionary)
 	for i in range(usersettings.bag_size):
 		var entry = rollGame()
 		prc_list.append(entry)
@@ -42,7 +50,7 @@ func rerollGame(i : int):
 func rollGame() -> Dictionary:
 	var newGame: Dictionary = {}
 	# Create paths
-	var sys: String = globals.rand_string(system_list)
+	var sys: String = globals.rand_string(active_systems)
 	var sys_dir: String = usersettings.rom_dir + "\\" + sys
 	var games_arr: PackedStringArray = DirAccess.get_files_at(sys_dir)
 	var game: String = globals.rand_string(games_arr)
@@ -208,11 +216,28 @@ func suspendPrc(pid):
 
 func _toggled(on: bool) -> void:
 	if on:
+		set_entries()
 		btn_start.icon = icon_stop
 		startGame(newId())
 	else:
-		btn_start.icon = icon_play
-		shutdown()
+		var accept_diag = AcceptDialog.new()
+		accept_diag.dialog_text = "Stop and close all processes?"
+		accept_diag.connect("confirmed", _diag_confirm.bind(accept_diag))
+		accept_diag.connect("canceled", _diag_cancel.bind(accept_diag))
+		notifman.notif_start()
+		add_child(accept_diag)
+		accept_diag.popup_centered()
+
+func _diag_cancel(_box : AcceptDialog):
+	btn_start.set_pressed_no_signal(true)
+	btn_start.icon = icon_stop
+	notifman.notif_compelte(_box)
+	
+func _diag_confirm(_box : AcceptDialog):
+	btn_start.set_pressed_no_signal(false)
+	btn_start.icon = icon_play
+	shutdown()
+	notifman.notif_compelte(_box)
 
 func shutdown():
 	for prc_info in prc_list:
@@ -249,6 +274,9 @@ func _remove() -> void:
 			rerollGame(i)
 			startGame(i)
 
+func _on_settings_pressed() -> void:
+	var menu = notifman.notif_settings(self)
+	
 func bringtofront(pid: int):
 	var bringgtofront_path = ProjectSettings.globalize_path("res://tools/switchtowindow.ps1")
 	#print(bringgtofront_path)
