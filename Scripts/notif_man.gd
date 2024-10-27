@@ -25,9 +25,19 @@ func notif_load():
 func notif_settings(caller : Node):
 	notif_start()
 	var settings_menu = settings_menu_asset.instantiate()
-	settings_menu.connect("update_and_close",update_list)
+	settings_menu.connect("notif_complete",notif_compelte)
 	add_child(settings_menu)
 	return settings_menu
+
+func _ready() -> void:
+	set_defaults()
+
+func set_defaults():
+	var settings_menu = settings_menu_asset.instantiate()
+	settings_menu.initialize_system_states()
+	print("Default settings initialized. ")
+	usersettings.system_dictionary = settings_menu.system_states
+	settings_menu.queue_free()
 
 func update_list(caller : Node, system_dic: Dictionary):
 	print("List updated.")

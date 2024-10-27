@@ -4,6 +4,7 @@ var system_dictionary : Dictionary
 
 var polygon : PackedVector2Array = []
 func _ready() -> void:
+	#notifman.set_defaults()
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	var current_size = DisplayServer.window_get_size() 
 	var button_bar_size = Vector2(325,84)

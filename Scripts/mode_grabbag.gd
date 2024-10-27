@@ -47,6 +47,7 @@ func rerollGame(i : int):
 	prc_list[i] = new_game
 	print(prc_list[i])
 
+var _3ds_increment : int = 0
 func rollGame() -> Dictionary:
 	var newGame: Dictionary = {}
 	# Create paths
@@ -59,9 +60,18 @@ func rollGame() -> Dictionary:
 	var game_name: String = globals.sanitize_string(game)
 	# Check for duplicate names in prc_list
 	for prc in prc_list:
-		#if prc["plat"] == sys:
-			#print("Second ", sys, " instance...", game_name, " Rerolling...")
-			#return rollGame()
+		# Only 1 PS3 instance...
+		if prc["plat"] == sys and sys == "ps3":
+			print("Second ", sys, " instance...", game_name, " Rerolling...")
+			return rollGame()
+		# Only 2 3DS instances...
+		if prc["plat"] == sys and sys == "n3ds":
+			if _3ds_increment >= 2:
+				print("Third ", sys, " instance...", game_name, " Rerolling...")
+				return rollGame()
+			else:
+				print("Incrementing ", sys, " instance...", game_name)
+				_3ds_increment += 1
 		if prc["name"] == game_name:
 			print("Duplicate game found: ", game_name, " Rerolling...")
 			return rollGame()  # Recursively re-call rollGame if a duplicate is found
