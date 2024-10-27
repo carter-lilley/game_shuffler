@@ -354,6 +354,8 @@ func match_core(sys : String) -> String:
 			current_core = usersettings.core_tg16
 		"tgcd":
 			current_core = usersettings.core_tgcd
+		"win3x":
+			current_core = usersettings.core_dos
 	return current_core
 
 func exclude_sys(dir_arr: PackedStringArray, exclusion_arr: Array) -> PackedStringArray:

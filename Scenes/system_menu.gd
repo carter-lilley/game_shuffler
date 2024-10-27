@@ -137,6 +137,9 @@ func create_system_menu():
 			"wiiu":
 				button.connect("toggled", _on_button_toggled.bind("wiiu"))
 				button.icon = preload("res://Sprites/ui_logos/Nintendo Wii U.png")
+			"win3x":
+				button.connect("toggled", _on_button_toggled.bind("win3x"))
+				button.icon = preload("res://Sprites/ui_logos/Windows 3.x.png")
 			"xbox":
 				button.connect("toggled", _on_button_toggled.bind("xbox"))
 				button.icon = preload("res://Sprites/ui_logos/Microsoft Xbox.png")
