@@ -60,6 +60,10 @@ func rollGame() -> Dictionary:
 	var game_name: String = globals.sanitize_string(game)
 	# Check for duplicate names in prc_list
 	for prc in prc_list:
+		# Only 1 Wii instance...
+		if prc["plat"] == sys and sys == "wii":
+			print("Second ", sys, " instance...", game_name, " Rerolling...")
+			return rollGame()
 		# Only 1 PS3 instance...
 		if prc["plat"] == sys and sys == "ps3":
 			print("Second ", sys, " instance...", game_name, " Rerolling...")
@@ -356,6 +360,10 @@ func match_core(sys : String) -> String:
 			current_core = usersettings.core_tgcd
 		"win3x":
 			current_core = usersettings.core_dos
+		"c64":
+			current_core = usersettings.core_c64
+		"msx":
+			current_core = usersettings.core_msx
 	return current_core
 
 func exclude_sys(dir_arr: PackedStringArray, exclusion_arr: Array) -> PackedStringArray:

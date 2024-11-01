@@ -39,6 +39,9 @@ func create_system_menu():
 			"atarilynx":
 				button.connect("toggled", _on_button_toggled.bind("atarilynx"))
 				button.icon = preload("res://Sprites/ui_logos/Atari Lynx.png")
+			"c64":
+				button.connect("toggled", _on_button_toggled.bind("c64"))
+				button.icon = preload("res://Sprites/ui_logos/Commodore 64.png")
 			"dos":
 				button.connect("toggled", _on_button_toggled.bind("dos"))
 				button.icon = preload("res://Sprites/ui_logos/MS-DOS.png")
@@ -69,6 +72,10 @@ func create_system_menu():
 			"mastersystem":
 				button.connect("toggled", _on_button_toggled.bind("mastersystem"))
 				button.icon = preload("res://Sprites/ui_logos/Sega Master System.png")
+			"msx":
+				button.connect("toggled", _on_button_toggled.bind("msx"))
+				button.set_pressed_no_signal(true)
+				button.icon = preload("res://Sprites/ui_logos/Microsoft MSX.png")
 			"n3ds":
 				button.connect("toggled", _on_button_toggled.bind("n3ds"))
 				button.icon = preload("res://Sprites/ui_logos/Nintendo 3DS.png")
@@ -138,6 +145,7 @@ func create_system_menu():
 				button.connect("toggled", _on_button_toggled.bind("wiiu"))
 				button.icon = preload("res://Sprites/ui_logos/Nintendo Wii U.png")
 			"win3x":
+				button.set_pressed_no_signal(true)
 				button.connect("toggled", _on_button_toggled.bind("win3x"))
 				button.icon = preload("res://Sprites/ui_logos/Windows 3.x.png")
 			"xbox":
