@@ -74,7 +74,7 @@ func create_system_menu():
 				button.icon = preload("res://Sprites/ui_logos/Sega Master System.png")
 			"msx":
 				button.connect("toggled", _on_button_toggled.bind("msx"))
-				button.set_pressed_no_signal(true)
+				#button.set_pressed_no_signal(true)
 				button.icon = preload("res://Sprites/ui_logos/Microsoft MSX.png")
 			"n3ds":
 				button.connect("toggled", _on_button_toggled.bind("n3ds"))
