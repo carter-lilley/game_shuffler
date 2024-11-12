@@ -1,0 +1,42 @@
+[gd_scene load_steps=4 format=3 uid="uid://cqdajbxg47tq8"]
+
+[ext_resource type="Script" path="res://Scenes/system_menu.gd" id="1_k2jqh"]
+[ext_resource type="Theme" uid="uid://y12xhi1prhmn" path="res://Themes/system_menu_theme.tres" id="2_nmj5k"]
+[ext_resource type="Texture2D" uid="uid://obmpq4l4uwm5" path="res://Sprites/ui_icons/1x/cross.png" id="3_hhvmp"]
+
+[node name="system_menu" type="CanvasLayer"]
+script = ExtResource("1_k2jqh")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GridContainer" type="GridContainer" parent="CenterContainer"]
+layout_mode = 2
+columns = 7
+
+[node name="CLOSE" type="Button" parent="CenterContainer/GridContainer"]
+custom_minimum_size = Vector2(225, 150)
+layout_mode = 2
+theme = ExtResource("2_nmj5k")
+icon = ExtResource("3_hhvmp")
+icon_alignment = 1
+
+[node name="ALL" type="Button" parent="CenterContainer/GridContainer"]
+custom_minimum_size = Vector2(225, 150)
+layout_mode = 2
+theme = ExtResource("2_nmj5k")
+text = "ALL"
+
+[node name="NONE" type="Button" parent="CenterContainer/GridContainer"]
+custom_minimum_size = Vector2(225, 150)
+layout_mode = 2
+theme = ExtResource("2_nmj5k")
+text = "NONE"
+
+[connection signal="pressed" from="CenterContainer/GridContainer/CLOSE" to="." method="_on_close_pressed"]
+[connection signal="pressed" from="CenterContainer/GridContainer/ALL" to="." method="_on_all_pressed"]
+[connection signal="pressed" from="CenterContainer/GridContainer/NONE" to="." method="_on_none_pressed"]

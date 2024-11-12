@@ -1,0 +1,65 @@
+[gd_scene load_steps=10 format=3 uid="uid://vjoinjilg3hv"]
+
+[ext_resource type="Shader" path="res://Scenes/notifs/notif_load.gdshader" id="1_dji3i"]
+[ext_resource type="Script" path="res://Scenes/notifs/notif_load.gd" id="1_p5tru"]
+[ext_resource type="Shader" path="res://Scenes/notifs/notif_load_text.gdshader" id="3_h1v2t"]
+[ext_resource type="FontFile" uid="uid://1poihseyfunj" path="res://Fonts/Univers/UniversBold.ttf" id="3_lrdms"]
+[ext_resource type="Script" path="res://Scripts/loading_label.gd" id="5_moa8s"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_utp7s"]
+shader = ExtResource("1_dji3i")
+shader_parameter/color1 = Color(0.1, 0.1, 0.1, 1)
+shader_parameter/color2 = Color(0.105, 0.105, 0.105, 1)
+shader_parameter/checker_size = 70.0
+shader_parameter/scroll_direction = Vector2(1, 1)
+shader_parameter/scroll_speed = 0.008
+shader_parameter/transition_completeness = 1.0
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_gaqql"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_omq02"]
+shader = ExtResource("3_h1v2t")
+shader_parameter/height = 3.0
+shader_parameter/frequency = 20.0
+shader_parameter/speed = 3.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_wfovk"]
+font = ExtResource("3_lrdms")
+font_size = 48
+shadow_size = 16
+shadow_color = Color(0.025, 0.025, 0.025, 1)
+
+[node name="notif_load" type="CanvasLayer"]
+script = ExtResource("1_p5tru")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="VBoxContainer"]
+material = SubResource("ShaderMaterial_utp7s")
+layout_mode = 2
+size_flags_vertical = 3
+texture = SubResource("CanvasTexture_gaqql")
+
+[node name="Label" type="Label" parent="VBoxContainer/TextureRect"]
+material = SubResource("ShaderMaterial_omq02")
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -346.0
+offset_top = -80.0
+grow_horizontal = 0
+grow_vertical = 0
+size_flags_horizontal = 3
+size_flags_vertical = 8
+text = "LOADING..."
+label_settings = SubResource("LabelSettings_wfovk")
+horizontal_alignment = 2
+script = ExtResource("5_moa8s")
