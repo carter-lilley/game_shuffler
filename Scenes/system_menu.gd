@@ -15,7 +15,7 @@ func initialize_system_states():
 	system_list = globals.dir_contents(usersettings.rom_dir)
 	for system in system_list:
 		match system:
-			"ps4", "steam":
+			"ps4", "steam", "ps3", "psvita", "switch", "wiiu", "win3x", "xbox", "xbox360":
 				system_states[system] = {"state": false}
 			_:
 				system_states[system] = {"state": true}
@@ -96,6 +96,7 @@ func create_system_menu():
 				button.icon = preload("res://Sprites/ui_logos/Sony Playstation 2.png")
 			"ps3":
 				button.connect("toggled", _on_button_toggled.bind("ps3"))
+				button.set_pressed_no_signal(true)
 				button.icon = preload("res://Sprites/ui_logos/Sony Playstation 3.png")
 			"ps4":
 				button.connect("toggled", _on_button_toggled.bind("ps4"))
@@ -106,6 +107,7 @@ func create_system_menu():
 				button.icon = preload("res://Sprites/ui_logos/Sony PSP.png")
 			"psvita":
 				button.connect("toggled", _on_button_toggled.bind("psvita"))
+				button.set_pressed_no_signal(true)
 				button.icon = preload("res://Sprites/ui_logos/Sony PS Vita.png")
 			"psx":
 				button.connect("toggled", _on_button_toggled.bind("psx"))
@@ -131,6 +133,7 @@ func create_system_menu():
 				button.icon = preload("res://Sprites/ui_logos/Steam.png")
 			"switch":
 				button.connect("toggled", _on_button_toggled.bind("switch"))
+				button.set_pressed_no_signal(true)
 				button.icon = preload("res://Sprites/ui_logos/Nintendo Switch.png")
 			"tg16":
 				button.connect("toggled", _on_button_toggled.bind("tg16"))
@@ -143,16 +146,19 @@ func create_system_menu():
 				button.icon = preload("res://Sprites/ui_logos/Nintendo Wii.png")
 			"wiiu":
 				button.connect("toggled", _on_button_toggled.bind("wiiu"))
+				button.set_pressed_no_signal(true)
 				button.icon = preload("res://Sprites/ui_logos/Nintendo Wii U.png")
 			"win3x":
-				button.set_pressed_no_signal(true)
 				button.connect("toggled", _on_button_toggled.bind("win3x"))
+				button.set_pressed_no_signal(true)
 				button.icon = preload("res://Sprites/ui_logos/Windows 3.x.png")
 			"xbox":
 				button.connect("toggled", _on_button_toggled.bind("xbox"))
+				button.set_pressed_no_signal(true)
 				button.icon = preload("res://Sprites/ui_logos/Microsoft Xbox.png")
 			"xbox360":
 				button.connect("toggled", _on_button_toggled.bind("xbox360"))
+				button.set_pressed_no_signal(true)
 				button.icon = preload("res://Sprites/ui_logos/Microsoft Xbox 360.png")
 		grid_container.add_child(button)
 
