@@ -20,10 +20,20 @@ var screen_size: Vector2 = Vector2(1600,900)
 #-------------------------------
 var bag_size: int = 10
 var round_time_min : float = 45.0
-var round_time_max : float = 148.0 #148
+var round_time_max : float = 170.0 #148
 #-------------------------------
 var rom_dir: String = "Z:\\roms"
-
+#--------- Standalones
+var cemu_dir: String = "D:\\Emulation\\storage\\cemu\\Cemu.exe"
+var lime3ds_dir: String = "D:\\Emulation\\storage\\lime3ds\\lime3ds.exe"
+var dolphin_dir: String = "D:\\Emulation\\storage\\dolphin\\Dolphin.exe"
+var pcsx2_dir: String = "D:\\Emulation\\storage\\pcsx2\\pcsx2-qt.exe"
+var rpcs3_dir: String = "D:\\Emulation\\storage\\rpcs3\\rpcs3.exe"
+var vita3k_dir: String = "D:\\Emulation\\storage\\Vita3k\\Vita3K.exe"
+var xemu_dir: String = "D:\\Emulation\\storage\\xemu\\xemu.exe"
+var xenia_dir: String = "D:\\Emulation\\storage\\xenia\\xenia_canary.exe"
+var sudachi_dir: String = "D:\\Emulation\\storage\\sudachi\\sudachi.exe"
+var ryujinx_dir: String = "D:\\Emulation\\storage\\ryujinx\\Ryujinx.exe"
 #--------- RA
 var ra_local: String = ProjectSettings.globalize_path("res://tools/retroarch/retroarch.exe")
 var ra_cores_dir: String = ProjectSettings.globalize_path("res://tools/retroarch/cores")

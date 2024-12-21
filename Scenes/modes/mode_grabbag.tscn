@@ -25,6 +25,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_0pk6d")
+metadata/_edit_group_ = true
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
