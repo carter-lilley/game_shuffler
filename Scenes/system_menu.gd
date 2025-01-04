@@ -48,6 +48,9 @@ func create_system_menu():
 			"dreamcast":
 				button.connect("toggled", _on_button_toggled.bind("dreamcast"))
 				button.icon = preload("res://Sprites/ui_logos/Sega Dreamcast.png")
+			"fds":
+				button.connect("toggled", _on_button_toggled.bind("fds"))
+				button.icon = preload("res://Sprites/ui_logos/Nintendo Famicom Disk System.png")
 			"gamegear":
 				button.connect("toggled", _on_button_toggled.bind("gamegear"))
 				button.icon = preload("res://Sprites/ui_logos/Sega Game Gear.png")
@@ -91,6 +94,10 @@ func create_system_menu():
 			"ngpc":
 				button.connect("toggled", _on_button_toggled.bind("ngpc"))
 				button.icon = preload("res://Sprites/ui_logos/SNK Neo Geo Pocket Color.png")
+			"pico8":
+				button.connect("toggled", _on_button_toggled.bind("pico8"))
+				button.set_pressed_no_signal(true)
+				button.icon = preload("res://Sprites/ui_logos/Pico-8.png")
 			"ps2":
 				button.connect("toggled", _on_button_toggled.bind("ps2"))
 				button.icon = preload("res://Sprites/ui_logos/Sony Playstation 2.png")

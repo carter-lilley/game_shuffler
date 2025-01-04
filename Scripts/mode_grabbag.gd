@@ -70,23 +70,20 @@ func rollGame() -> Dictionary:
 	newGame["plat"] = sys
 	var prc: String
 	match sys:
-		#"gc":
-			#prc = usersettings.dolphin_dir
-			#args = ["-e" , game_dir, "--config" , "Dolphin.Display.Fullscreen=True"]
 		#"n3ds":
 			#prc = usersettings.lime3ds_dir
 			#args = ["-f", "-g", game_dir]
 		#"ps2":
-			#prc = usersettings.pcsx2_dir
-			#args = ["-fullscreen" , game_dir]
-		#"ps3":
-			#prc = usersettings.rpcs3_dir
-			#var link_target = get_lnk_target(game_dir)
-			#args = ["--fullscreen", "--no-gui", link_target]
-		#"psvita":
-			#prc = usersettings.vita3k_dir
-			#var game_ID = FileAccess.open(game_dir, FileAccess.READ).get_as_text()
-			#args = ["-r" , game_ID]
+			#newGame["emu"] = usersettings.pcsx2_dir
+			#newGame["args"] = ["-fullscreen" , game_dir]
+		"ps3":
+			newGame["emu"] = usersettings.rpcs3_dir
+			var link_target = get_lnk_target(game_dir)
+			newGame["args"] = ["--fullscreen", "--no-gui", link_target]
+		"psvita":
+			prc = usersettings.vita3k_dir
+			var game_ID = FileAccess.open(game_dir, FileAccess.READ).get_as_text()
+			newGame["args"] = ["-r" , game_ID]
 		#"steam":
 			#prc = game_dir
 		#"switch":
@@ -94,25 +91,18 @@ func rollGame() -> Dictionary:
 			#prc = usersettings.sudachi_dir
 			##args = ["-r", "D:\\Emulation\\saves\\ryujinx", game_dir, "--fullscreen"]
 			#args = ["-g" , game_dir,"-f"]
-		#"wii":
-			#prc = usersettings.dolphin_dir
-			#args = ["-e" , game_dir, "--config" , "Dolphin.Display.Fullscreen=True"]
-		#"wiiu":
-			#prc = usersettings.cemu_dir
-			#args = ["-g" , game_dir, "-f"]
-		#"xbox":
-			#prc = usersettings.xemu_dir
-			#args = ["-dvd_path", game_dir]
-			##args = ["-full-screen","-dvd_path", game_dir]
-		#"xbox360":
-			#prc = usersettings.xenia_dir
-			#args = ["--fullscreen=true", game_dir]
+		#"wii", "gc":
+			#newGame["emu"] = usersettings.dolphin_dir
+			#newGame["args"] = ["-e" , game_dir, "--config" , "Dolphin.Display.Fullscreen=True"]
+		"wiiu":
+			newGame["emu"] = usersettings.cemu_dir
+			newGame["args"] = ["-g" , game_dir, "-f"]
+		"xbox360":
+			newGame["emu"] = usersettings.xenia_dir
+			newGame["args"] = ["--fullscreen=true", game_dir]
 		"xbox":
 			newGame["emu"] = usersettings.xenia_dir
 			newGame["args"] = ["--fullscreen=true", game_dir]
-		#"wii", "gc":
-			#newGame["emu"] = usersettings.dolphin_local
-			#newGame["args"] = ["-e" , game_dir, "--config" , "Dolphin.Display.Fullscreen=True"]
 		_:
 			newGame["emu"] = usersettings.ra_local
 			newGame["args"] = ["-L" , usersettings.ra_cores_dir + game_core, game_dir]
@@ -150,7 +140,8 @@ func switch_game(next_game:Dictionary):
 ## Stop the current timer and start a new one for the next round
 	if is_instance_valid(curr_timer):
 		curr_timer.stop()
-	curr_timer = globals.create_timer(randf_range(usersettings.round_time_min, usersettings.round_time_max),switch_game, pick_game)
+	var nxt_game = pick_game()
+	curr_timer = globals.create_timer(randf_range(usersettings.round_time_min, usersettings.round_time_max),switch_game, nxt_game)
 ## Update previous game to the currently running game..
 	previous_game = next_game
 
@@ -267,6 +258,33 @@ func _on_settings_pressed() -> void:
 	var menu = notifman.notif_settings(self)
 
 # utils-----------------------------------------------------------------------------------------------------------------------------
+func get_lnk_target(lnk_path: String) -> String:
+	print("PS3 Lnk Path...",lnk_path)
+	var powershell_cmd = "powershell"
+	var arguments = [
+		"-Command",
+		"$WshShell = New-Object -ComObject WScript.Shell; " +
+		"$Shortcut = $WshShell.CreateShortcut('" + lnk_path + "'); " +
+		"$Shortcut.Arguments"
+		]
+	var output = []
+	var exit_code = OS.execute(powershell_cmd, arguments, output, true)
+	if exit_code == 0:
+		var args_string = String("\n").join(output).strip_edges()
+		print("Constructing PS3 arg string...", args_string)
+		#return args_string
+		## Use regex to find the part inside the escaped quotes
+		var regex = RegEx.new()
+		regex.compile(r'"(.*?)"')  # Matches text between double quotes
+		var reg_match = regex.search(args_string)
+		# If a match is found, return the content inside the quotes, otherwise return an empty string
+		if reg_match:
+			return reg_match.get_string(1)
+		else:
+			return "No match found"
+	else:
+		return "Error reading .lnk file"
+
 func match_core(sys : String) -> String:
 	var current_core: String
 	match sys:
@@ -280,6 +298,8 @@ func match_core(sys : String) -> String:
 			current_core = usersettings.core_dos
 		"dreamcast":
 			current_core = usersettings.core_dreamcast
+		"fds":
+			current_core = usersettings.core_nes
 		"gamegear":
 			current_core = usersettings.core_gamegear
 		"gc":
