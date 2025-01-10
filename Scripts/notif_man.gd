@@ -45,16 +45,6 @@ func update_list(system_dic: Dictionary):
 	print("List updated.")
 	print(system_dic)
 	usersettings.system_dictionary = system_dic
-
-#func _process(delta: float) -> void:
-	#if active_notifs > 0 and !screen_poly:
-		#print("Notifman: Fullscreen poly enabled. Active notifs: ", active_notifs)
-		#screen_poly = true
-		#get_window().set_mouse_passthrough_polygon([])
-	#elif active_notifs == 0 and screen_poly:
-		#print("Notifman: Fullscreen poly disabled. Active notifs: ", active_notifs)
-		#screen_poly = false
-		#get_window().set_mouse_passthrough_polygon(usersettings.polygon)
 		
 var screen_poly : bool = false
 func notif_start():

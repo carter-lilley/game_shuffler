@@ -108,6 +108,9 @@ func create_system_menu():
 			"nds":
 				button.connect("toggled", _on_button_toggled.bind("nds"))
 				button.icon = preload("res://Sprites/ui_logos/Nintendo DS.png")
+			"neogeo":
+				button.connect("toggled", _on_button_toggled.bind("neogeo"))
+				button.icon = preload("res://Sprites/ui_logos/SNK Neo Geo MVS.png")		
 			"nes":
 				button.connect("toggled", _on_button_toggled.bind("nes"))
 				button.icon = preload("res://Sprites/ui_logos/Nintendo Entertainment System.png")

@@ -1,11 +1,10 @@
 extends Control
-# What happens if it cant launch a game?
-# Don't just confirm the process exists...confirm it's process WINDOW exists and is active
-# Two issues - the game cant launch (the process is created, but then closed)
-# OR the game isn't found
-# Swap console logos for text
+
+# Swap console logos for txt
 # Never same game twice
-# move IGDB and Confirmation processes to seperate thread
+# move IGDB to seperate thread
+# controller menu? more options exposed to player
+
 @onready var sound_player = $AudioStreamPlayer2D
 @onready var time_label = $HBoxContainer/VBoxContainer/Label
 @onready var btn_start = $HBoxContainer/VBoxContainer/Start
@@ -14,6 +13,8 @@ extends Control
 @onready var icon_play = preload("res://Sprites/ui_icons/1x/forward.png")
 @onready var icon_stop = preload("res://Sprites/ui_icons/1x/stop.png")
 @onready var icon_pause = preload("res://Sprites/ui_icons/1x/pause.png")
+
+signal load_open
 
 var sfk_path = ProjectSettings.globalize_path("res://tools/sfk.exe")
 var pssuspend_path = ProjectSettings.globalize_path("res://tools/pssuspend.exe")
@@ -133,6 +134,7 @@ func switch_game(next_game:Dictionary):
 		query_game_info(next_game)
 ## Close the loading screen and fullscreen the click-through polygon
 	var load_screen = notifman.notif_load()
+	connect("load_open",Callable(load_screen, "open"))
 	load_screen.close() #start loading animation on new thread?
 	sound_player.play()
 ## If the previous game is RA, save and close it, else, suspend it.
@@ -149,17 +151,24 @@ func switch_game(next_game:Dictionary):
 	elif next_game["emu"] == usersettings.ra_local or not fresh_boot:
 		print("Starting game...")
 		game_thread.start(start_game.bind(next_game))
-		var start_success = thread.call_deferred("wait_to_finish")
-		#var start_success = await start_game(next_game)
-		if not start_success:
-			print("Failed to start game: " + next_game["name"])
-			previous_game = next_game
-			load_screen.open()
-			_remove()
-			return 
-		else: print("Game started.")
+		return
+	game_started(next_game)
+
+func new_start_response(next_game : Dictionary):
+	var response = game_thread.wait_to_finish()
+	if not response:
+		print("Failed to start game: " + next_game["name"])
+		previous_game = next_game
+		emit_signal("load_open")
+		_remove()
+		return 
+	else:
+		game_started(next_game)
+		print("Game started.")
+
+func game_started(next_game : Dictionary):
 ## End the loading screen and bring the new prc to front
-	load_screen.open()
+	emit_signal("load_open")
 	print(str(bring_to_front(next_game["pid"])))
 	await get_tree().create_timer(0.25).timeout
 	bring_to_front(OS.get_process_id()) # Bring this game window back on top of the game
@@ -170,33 +179,6 @@ func switch_game(next_game:Dictionary):
 	curr_timer = globals.create_timer(randf_range(usersettings.round_time_min, usersettings.round_time_max),switch_game, nxt_game)
 ## Update previous game to the currently running game..
 	previous_game = next_game
-
-func udp_send(cmd : String) -> Array:
-	# Safe quit RA via UDP command (Save & quit)
-	var udp_args : PackedStringArray = [
-		"udpsend", "localhost", "55355", cmd
-		]
-	var output = []
-	var result = OS.execute(sfk_path, udp_args, output, true)
-	return output
-
-func suspend(game : Dictionary):
-	game["active"] = false
-	var suspend = PackedStringArray([game["pid"]])
-	var result = OS.execute(pssuspend_path,suspend, [], true)
-	if result != OK:
-		print("Failed to suspend process: ", game["pid"])
-	else:
-		print("Suspending Process: ", game["pid"])
-
-func resume(game : Dictionary):
-	game["active"] = true
-	var resume = PackedStringArray(["-r", game["pid"]])
-	var result = OS.execute(pssuspend_path,resume, [], true)
-	if result != OK:
-		print("Failed to resume process: ", game["pid"])
-	else:
-		print("Resuming Process: ", game["pid"])
 
 func verify_process(pid: int, expected_title: String = "RetroArch") -> Dictionary:
 	var script_path = ProjectSettings.globalize_path("res://tools/verifyprocess.ps1")
@@ -242,6 +224,7 @@ func start_game(game: Dictionary) -> bool:
 		var result = verify_process(game["pid"], game.get("window_title", "RetroArch"))
 		if not result.success:
 			push_error("Process verification failed: " + result.error)
+			call_deferred("new_start_response", game)
 			return false
 		var process_info = result.data
 		# Check if process is properly running
@@ -251,6 +234,7 @@ func start_game(game: Dictionary) -> bool:
 			print("Process verified running: ", game["pid"], " in ", actual_elapsed, " seconds")
 			print("Window Title: ", process_info.WindowTitle)
 			game["started"] = true
+			call_deferred("new_start_response", game)
 			return true
 		# Wait before next check
 		await get_tree().create_timer(check_interval).timeout
@@ -259,6 +243,7 @@ func start_game(game: Dictionary) -> bool:
 	push_error("Process created but failed to verify running state: " + game["name"])
 	OS.kill(game["pid"])
 	game["started"] = false
+	call_deferred("new_start_response", game)
 	return false
 
 func query_game_info(game : Dictionary):
@@ -269,6 +254,33 @@ func query_game_info(game : Dictionary):
 	else:
 		notifman.notif_intro(game_qry["tex"], game_qry["name"], str(game["plat"]), str(game_qry["release"]))
 
+func udp_send(cmd : String) -> Array:
+	# Safe quit RA via UDP command (Save & quit)
+	var udp_args : PackedStringArray = [
+		"udpsend", "localhost", "55355", cmd
+		]
+	var output = []
+	var result = OS.execute(sfk_path, udp_args, output, true)
+	return output
+
+func suspend(game : Dictionary):
+	game["active"] = false
+	var suspend = PackedStringArray([game["pid"]])
+	var result = OS.execute(pssuspend_path,suspend, [], true)
+	if result != OK:
+		print("Failed to suspend process: ", game["pid"])
+	else:
+		print("Suspending Process: ", game["pid"])
+
+func resume(game : Dictionary):
+	game["active"] = true
+	var resume = PackedStringArray(["-r", game["pid"]])
+	var result = OS.execute(pssuspend_path,resume, [], true)
+	if result != OK:
+		print("Failed to resume process: ", game["pid"])
+	else:
+		print("Resuming Process: ", game["pid"])
+		
 func bring_to_front(pid : int):
 	var script_path = ProjectSettings.globalize_path("res://tools/switchtowindow.ps1")
 	var args = [
@@ -410,6 +422,8 @@ func match_core(sys : String) -> String:
 			current_core = usersettings.core_mame
 		"mastersystem":
 			current_core = usersettings.core_mastersystem
+		"neogeo":
+			current_core = usersettings.core_neogeo
 		"n3ds":
 			current_core = usersettings.core_n3ds
 		"n64":
