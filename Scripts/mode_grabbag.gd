@@ -1,9 +1,15 @@
 extends Control
-# Need file type checks
+# What happens if it cant launch a game?
+# Don't just confirm the process exists...confirm it's process WINDOW exists and is active
+# Two issues - the game cant launch (the process is created, but then closed)
+# OR the game isn't found
+# Swap console logos for text
+# Never same game twice
+# move IGDB and Confirmation processes to seperate thread
 @onready var sound_player = $AudioStreamPlayer2D
 @onready var time_label = $HBoxContainer/VBoxContainer/Label
-@onready var btn_start = $HBoxContainer/VBoxContainer/HBoxContainer/Start
-@onready var btn_pause = $HBoxContainer/VBoxContainer/HBoxContainer/Pause
+@onready var btn_start = $HBoxContainer/VBoxContainer/Start
+@onready var btn_pause = $HBoxContainer/VBoxContainer/Pause
 
 @onready var icon_play = preload("res://Sprites/ui_icons/1x/forward.png")
 @onready var icon_stop = preload("res://Sprites/ui_icons/1x/stop.png")
@@ -56,6 +62,8 @@ func rollGame() -> Dictionary:
 	var sys: String = globals.rand_string(active_systems)
 	var sys_dir: String = usersettings.rom_dir + "\\" + sys
 	var games_arr: PackedStringArray = DirAccess.get_files_at(sys_dir)
+	if games_arr.is_empty():
+		push_error("No games found in roms directory.")
 	var game_name_raw: String = globals.rand_string(games_arr)
 	var game_dir: String = usersettings.rom_dir + "\\" + sys + "\\" + game_name_raw
 # Sanitize game name and check for duplicates
@@ -113,30 +121,48 @@ func _process(_delta: float) -> void:
 	if is_instance_valid(curr_timer):
 		time_label.text = str(round(curr_timer.time_left))
 
+var game_thread : Thread = Thread.new()
 var previous_game: Dictionary = game_blank.duplicate()
 func switch_game(next_game:Dictionary):
-	var load_screen = notifman.notif_load()
-	load_screen.close()
-	sound_player.play()
 	print("NEW GAME START!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 	print("Previous game: ",previous_game["name"], "Next game: ",next_game["name"])
+## Determine if the next game is brand new
+	var fresh_boot: bool = false
+	if not next_game["started"]:
+		fresh_boot = true
+		query_game_info(next_game)
+## Close the loading screen and fullscreen the click-through polygon
+	var load_screen = notifman.notif_load()
+	load_screen.close() #start loading animation on new thread?
+	sound_player.play()
 ## If the previous game is RA, save and close it, else, suspend it.
 	if previous_game["emu"] == usersettings.ra_local:
-		await save_and_close()
+		udp_send("QUIT")
+		await get_tree().create_timer(0.5).timeout
+		udp_send("QUIT")
 	else:
 		await suspend(previous_game)
 ## If the next game is not of type RA and has already been started, resume it.
-	if next_game["emu"] != usersettings.ra_local and next_game["started"]:
+	if next_game["emu"] != usersettings.ra_local and fresh_boot:
 		resume(next_game)
 ## If the next game is of type RA or has not been started, create its process.
-	elif next_game["emu"] == usersettings.ra_local or not next_game["started"]:
-		start_game(next_game)
-## If this is the first time the game is being launched, do an information query.
-		if not next_game["started"]:
-			query_game_info(next_game)
+	elif next_game["emu"] == usersettings.ra_local or not fresh_boot:
+		print("Starting game...")
+		game_thread.start(start_game.bind(next_game))
+		var start_success = thread.call_deferred("wait_to_finish")
+		#var start_success = await start_game(next_game)
+		if not start_success:
+			print("Failed to start game: " + next_game["name"])
+			previous_game = next_game
+			load_screen.open()
+			_remove()
+			return 
+		else: print("Game started.")
 ## End the loading screen and bring the new prc to front
 	load_screen.open()
-	bring_to_front(next_game)
+	print(str(bring_to_front(next_game["pid"])))
+	await get_tree().create_timer(0.25).timeout
+	bring_to_front(OS.get_process_id()) # Bring this game window back on top of the game
 ## Stop the current timer and start a new one for the next round
 	if is_instance_valid(curr_timer):
 		curr_timer.stop()
@@ -145,14 +171,14 @@ func switch_game(next_game:Dictionary):
 ## Update previous game to the currently running game..
 	previous_game = next_game
 
-func save_and_close():
+func udp_send(cmd : String) -> Array:
 	# Safe quit RA via UDP command (Save & quit)
-	var ra_safe_quit_args : PackedStringArray = [
-		"udpsend", "localhost", "55355", "QUIT"
+	var udp_args : PackedStringArray = [
+		"udpsend", "localhost", "55355", cmd
 		]
-	var result_0 = OS.execute(sfk_path, ra_safe_quit_args, [], true)
-	await get_tree().create_timer(0.5).timeout
-	var result_1 = OS.execute(sfk_path, ra_safe_quit_args, [], true)
+	var output = []
+	var result = OS.execute(sfk_path, udp_args, output, true)
+	return output
 
 func suspend(game : Dictionary):
 	game["active"] = false
@@ -172,10 +198,68 @@ func resume(game : Dictionary):
 	else:
 		print("Resuming Process: ", game["pid"])
 
-func start_game(game : Dictionary):
+func verify_process(pid: int, expected_title: String = "RetroArch") -> Dictionary:
+	var script_path = ProjectSettings.globalize_path("res://tools/verifyprocess.ps1")
+	var args = [
+		"-Command",
+		"Set-ExecutionPolicy Bypass -Scope Process;",
+		". " + script_path + "; Check-GameProcess -process_id " + str(pid) + " -expected_title '" + expected_title + "'"
+	]
+	var output = []
+	var exit_code = OS.execute("powershell.exe", args, output, true)
+	
+	if exit_code != 0 or output.size() == 0:
+		return {
+			"success": false,
+			"error": "Failed to execute verification script"
+		}
+	
+	# Parse JSON output from PowerShell
+	var json = JSON.parse_string(output[0])
+	if not json:
+		return {
+			"success": false,
+			"error": "Failed to parse script output"
+		}
+	
+	return {
+		"success": true,
+		"data": json
+	}
+
+func start_game(game: Dictionary) -> bool:
+	# Start timing from process creation
+	var start_time = Time.get_ticks_msec()
+	# Start the process and store PID
 	game["pid"] = OS.create_process(game["emu"], game["args"])
-	await get_tree().create_timer(0.5).timeout
-	game["started"] = true
+	# Configuration for checks
+	var max_wait_time: float = 15.0
+	var elapsed_time: float = 0.0
+	var check_interval: float = 0.5
+	# Wait and verify process is properly running
+	while elapsed_time < max_wait_time:
+		# Verify process status
+		var result = verify_process(game["pid"], game.get("window_title", "RetroArch"))
+		if not result.success:
+			push_error("Process verification failed: " + result.error)
+			return false
+		var process_info = result.data
+		# Check if process is properly running
+		if process_info.IsRunning and process_info.HasWindow:
+			# Calculate actual elapsed time in seconds
+			var actual_elapsed = (Time.get_ticks_msec() - start_time) / 1000.0
+			print("Process verified running: ", game["pid"], " in ", actual_elapsed, " seconds")
+			print("Window Title: ", process_info.WindowTitle)
+			game["started"] = true
+			return true
+		# Wait before next check
+		await get_tree().create_timer(check_interval).timeout
+		elapsed_time += check_interval
+	# If we got here, the process exists but failed to properly start
+	push_error("Process created but failed to verify running state: " + game["name"])
+	OS.kill(game["pid"])
+	game["started"] = false
+	return false
 
 func query_game_info(game : Dictionary):
 	var game_qry = await IGDB.query_game(game["name"], game["plat"])
@@ -185,23 +269,23 @@ func query_game_info(game : Dictionary):
 	else:
 		notifman.notif_intro(game_qry["tex"], game_qry["name"], str(game["plat"]), str(game_qry["release"]))
 
-func bring_to_front(game : Dictionary):
+func bring_to_front(pid : int):
 	var script_path = ProjectSettings.globalize_path("res://tools/switchtowindow.ps1")
 	var args = [
-		"-Command", "Set-ExecutionPolicy Bypass -Scope Process;", ". " + script_path + "; goto " + str(game["pid"])
+		"-Command", "Set-ExecutionPolicy Bypass -Scope Process;", ". " + script_path + "; goto " + str(pid)
 	]
 	var output = []
 	OS.execute("powershell.exe", args, output, true)
-	print("Bring to front output:", output)  # Output array contains the entire shell output as a single String element
+	return output
 
 func pick_game() -> Dictionary:
 	var new_id = randi() % usersettings.bag_size
 	while new_id == game_list.find(previous_game):
 		new_id = randi() % usersettings.bag_size
-	print("Current id: ", game_list.find(previous_game), "Next id: ", new_id)
+	print("Current id: ", game_list.find(previous_game), " Next id: ", new_id)
 	return game_list[new_id]
 	
-# BUTTON HELPERS-----------------------------------------------------------------------------------------------------------------------------
+# BUTTON SIGNALS-----------------------------------------------------------------------------------------------------------------------------
 func _toggled(on: bool) -> void:
 	if on:
 		set_entries()
@@ -219,13 +303,15 @@ func _toggled(on: bool) -> void:
 func _diag_cancel(_box : AcceptDialog):
 	btn_start.set_pressed_no_signal(true)
 	btn_start.icon = icon_stop
-	notifman.notif_compelte(_box)
+	_box.queue_free()
+	notifman.notif_end()
 	
 func _diag_confirm(_box : AcceptDialog):
 	btn_start.set_pressed_no_signal(false)
 	btn_start.icon = icon_play
 	shutdown()
-	notifman.notif_compelte(_box)
+	_box.queue_free()
+	notifman.notif_end()
 
 func shutdown():
 	for game in game_list:
@@ -254,8 +340,12 @@ func _remove() -> void:
 			rerollGame(i)
 			switch_game(game_list[i])
 
+func _restart() -> void:
+	if !game_list.is_empty():
+		switch_game(previous_game)
+
 func _on_settings_pressed() -> void:
-	var menu = notifman.notif_settings(self)
+	notifman.notif_settings()
 
 # utils-----------------------------------------------------------------------------------------------------------------------------
 func get_lnk_target(lnk_path: String) -> String:
@@ -292,6 +382,8 @@ func match_core(sys : String) -> String:
 			current_core = usersettings.core_3do
 		"atari2600":
 			current_core = usersettings.core_atari2600
+		"atomiswave":
+			current_core = usersettings.core_dreamcast
 		"atarilynx":
 			current_core = usersettings.core_atarilynx
 		"dos":
@@ -300,6 +392,8 @@ func match_core(sys : String) -> String:
 			current_core = usersettings.core_dreamcast
 		"fds":
 			current_core = usersettings.core_nes
+		"gameandwatch":
+			current_core = usersettings.core_gameandwatch
 		"gamegear":
 			current_core = usersettings.core_gamegear
 		"gc":
@@ -322,6 +416,10 @@ func match_core(sys : String) -> String:
 			current_core = usersettings.core_n64
 		"nds":
 			current_core = usersettings.core_nds
+		"naomi":
+			current_core = usersettings.core_dreamcast
+		"naomi2":
+			current_core = usersettings.core_dreamcast
 		"neogeo":
 			current_core = usersettings.core_neogeo
 		"nes":
@@ -348,6 +446,8 @@ func match_core(sys : String) -> String:
 			current_core = usersettings.core_tg16
 		"tgcd":
 			current_core = usersettings.core_tgcd
+		"virtualboy":
+			current_core = usersettings.core_virtualboy
 		"wii":
 			current_core = usersettings.core_wii
 		"win3x":

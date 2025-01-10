@@ -23,12 +23,17 @@ func timers_pause(state : bool):
 			print(timer, " set to ",state)	
 
 func timers_kill():
+	# Collect timers to remove
+	var timers_to_remove = []
 	for timer in timer_list:
 		if timer.is_inside_tree():
 			timer.stop()
 			timer.queue_free()
-			timer_list.erase(timer)
-			print(timer, " stopped and queued for deletion")	
+			timers_to_remove.append(timer)
+			print(timer, " stopped and queued for deletion")
+	# Remove timers from the list
+	for timer in timers_to_remove:
+		timer_list.erase(timer)
 
 func create_timer(secs: float, function: Callable, arg: Variant = null):
 	var timer = Timer.new()

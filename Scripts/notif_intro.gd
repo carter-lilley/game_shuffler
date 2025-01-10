@@ -9,8 +9,9 @@ signal notif_complete
 @onready var info_label = $VBoxContainer/HBoxContainer/Title_Pivot/Panel/HBoxContainer/VBoxContainer/Info
 var art_size
 var screen_size
-
+	
 func _ready() -> void:
+	#anim_thread.start(setup)
 	call_deferred("setup")
 
 func setup() -> void:
@@ -37,7 +38,7 @@ func clip_2():
 	panel_tw.tween_property(title_panel, "modulate:a", 0, 1.5).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 
 func clip_3():
-	emit_signal("notif_complete", self)
+	emit_signal("notif_complete")
 	queue_free()
 
 func set_info(title : String, system : String, release : String):

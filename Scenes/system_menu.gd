@@ -1,5 +1,5 @@
 extends CanvasLayer
-signal notif_complete
+signal menu_close
 
 @onready var system_theme = preload("res://Themes/system_menu_theme.tres")
 @onready var grid_container = $CenterContainer/GridContainer
@@ -15,7 +15,7 @@ func initialize_system_states():
 	system_list = globals.dir_contents(usersettings.rom_dir)
 	for system in system_list:
 		match system:
-			"ps4", "steam", "ps3", "psvita", "switch", "wiiu", "win3x", "xbox", "xbox360":
+			"ps4", "steam", "ps3", "psvita", "switch", "wiiu", "win3x", "xbox", "xbox360", "pico8", "model2", "model3":
 				system_states[system] = {"state": false}
 			_:
 				system_states[system] = {"state": true}
@@ -24,7 +24,7 @@ func create_system_menu():
 	for system in usersettings.system_dictionary:
 		# Create button...
 		var button = Button.new()
-		button.custom_minimum_size = Vector2(225,150)
+		button.custom_minimum_size = Vector2(200,100)
 		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		button.theme = system_theme
 		button.expand_icon = true
@@ -39,6 +39,9 @@ func create_system_menu():
 			"atarilynx":
 				button.connect("toggled", _on_button_toggled.bind("atarilynx"))
 				button.icon = preload("res://Sprites/ui_logos/Atari Lynx.png")
+			"atomiswave":
+				button.connect("toggled", _on_button_toggled.bind("atomiswave"))
+				button.icon = preload("res://Sprites/ui_logos/Sammy Atomiswave.png")
 			"c64":
 				button.connect("toggled", _on_button_toggled.bind("c64"))
 				button.icon = preload("res://Sprites/ui_logos/Commodore 64.png")
@@ -51,6 +54,9 @@ func create_system_menu():
 			"fds":
 				button.connect("toggled", _on_button_toggled.bind("fds"))
 				button.icon = preload("res://Sprites/ui_logos/Nintendo Famicom Disk System.png")
+			"gameandwatch":
+				button.connect("toggled", _on_button_toggled.bind("gameandwatch"))
+				button.icon = preload("res://Sprites/ui_logos/Nintendo Game & Watch.png")
 			"gamegear":
 				button.connect("toggled", _on_button_toggled.bind("gamegear"))
 				button.icon = preload("res://Sprites/ui_logos/Sega Game Gear.png")
@@ -75,10 +81,24 @@ func create_system_menu():
 			"mastersystem":
 				button.connect("toggled", _on_button_toggled.bind("mastersystem"))
 				button.icon = preload("res://Sprites/ui_logos/Sega Master System.png")
+			"model2":
+				button.connect("toggled", _on_button_toggled.bind("model2"))
+				button.set_pressed_no_signal(true)
+				button.icon = preload("res://Sprites/ui_logos/Sega Model 2.png")
+			"model3":
+				button.connect("toggled", _on_button_toggled.bind("model3"))
+				button.set_pressed_no_signal(true)
+				button.icon = preload("res://Sprites/ui_logos/Sega Model 3 .png")
 			"msx":
 				button.connect("toggled", _on_button_toggled.bind("msx"))
 				#button.set_pressed_no_signal(true)
 				button.icon = preload("res://Sprites/ui_logos/Microsoft MSX.png")
+			"naomi":
+				button.connect("toggled", _on_button_toggled.bind("naomi"))
+				button.icon = preload("res://Sprites/ui_logos/Sega Naomi.png")
+			"naomi2":
+				button.connect("toggled", _on_button_toggled.bind("naomi2"))
+				button.icon = preload("res://Sprites/ui_logos/Sega Naomi 2.png")
 			"n3ds":
 				button.connect("toggled", _on_button_toggled.bind("n3ds"))
 				button.icon = preload("res://Sprites/ui_logos/Nintendo 3DS.png")
@@ -148,6 +168,9 @@ func create_system_menu():
 			"tgcd":
 				button.connect("toggled", _on_button_toggled.bind("tgcd"))
 				button.icon = preload("res://Sprites/ui_logos/NEC TurboGrafx-CD.png")
+			"virtualboy":
+				button.connect("toggled", _on_button_toggled.bind("virtualboy"))
+				button.icon = preload("res://Sprites/ui_logos/Nintendo Virtual Boy.png")
 			"wii":
 				button.connect("toggled", _on_button_toggled.bind("wii"))
 				button.icon = preload("res://Sprites/ui_logos/Nintendo Wii.png")
@@ -192,4 +215,5 @@ func _on_all_pressed() -> void:
 func _on_close_pressed() -> void:
 	print("Updated user settings...")
 	print(usersettings.system_dictionary)
-	emit_signal("notif_complete", self)
+	queue_free()
+	emit_signal("menu_close")

@@ -7,10 +7,10 @@ func _ready() -> void:
 	#notifman.set_defaults()
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	var current_size = DisplayServer.window_get_size() 
-	var button_bar_size = Vector2(325,84)
-	polygon = [Vector2(0,current_size.y-button_bar_size.y),
-				Vector2(button_bar_size.x,current_size.y-button_bar_size.y),
-				Vector2(button_bar_size.x,current_size.y),
+	var v_button_bar_width = 60
+	polygon = [Vector2(0,0),
+				Vector2(v_button_bar_width,0),
+				Vector2(v_button_bar_width,current_size.y),
 				Vector2(0,current_size.y)]
 	get_window().set_mouse_passthrough_polygon(polygon)
 	#get_window().size = screen_size
@@ -41,10 +41,12 @@ var ra_cores_dir: String = ProjectSettings.globalize_path("res://tools/retroarch
 var core_3do: String = "\\opera_libretro.dll"
 var core_atari2600: String = "\\stella_libretro.dll"
 var core_atarilynx: String = "\\handy_libretro.dll"
+var core_atomiswave: String = "\\flycast_libretro.dll"
 var core_c64: String = "\\vice_x64_libretro.dll"
 var core_dos: String = "\\dosbox_pure_libretro.dll"
 var core_dreamcast: String = "\\flycast_libretro.dll"
 var core_gamegear: String = "\\genesis_plus_gx_libretro.dll"
+var core_gameandwatch: String = "\\gw_libretro.dll"
 var core_gc: String = "\\dolphin_libretro.dll"
 var core_gb: String = "\\gambatte_libretro.dll"
 var core_gba: String = "\\mgba_libretro.dll"
@@ -55,7 +57,9 @@ var core_mastersystem: String = "\\genesis_plus_gx_libretro.dll"
 var core_msx: String = "\\fmsx_libretro.dll"
 var core_n3ds: String = "\\citra_libretro.dll"
 var core_n64: String = "\\mupen64plus_next_libretro.dll"
-var core_nds: String = "\\melonds_libretro.dll"
+var core_naomi: String = "\\flycast_libretro.dll"
+var core_naomi2: String = "\\flycast_libretro.dll"
+var core_nds: String = "\\melondsds_libretro.dll"
 var core_nes: String = "\\mesen_libretro.dll"
 var core_ngpc: String = "\\mednafen_ngp_libretro.dll"
 var core_psp: String = "\\ppsspp_libretro.dll"
@@ -68,5 +72,6 @@ var core_sg1000: String = "\\genesis_plus_gx_libretro.dll" #? special character
 var core_snes: String = "\\snes9x_libretro.dll"
 var core_tg16: String = "\\mednafen_pce_libretro.dll"
 var core_tgcd: String = "\\mednafen_pce_libretro.dll" #? special character
+var core_virtualboy: String = "\\mednafen_vb_libretro.dll"
 var core_wii: String = "\\dolphin_libretro.dll" 
 #---------
