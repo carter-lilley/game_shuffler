@@ -18,9 +18,9 @@ func _ready() -> void:
 #1600, 900
 var screen_size: Vector2 = Vector2(1600,900)
 #-------------------------------
-var bag_size: int = 10
-var round_time_min : float = 45.0
-var round_time_max : float = 170.0 #148
+var bag_size: int = 12
+var round_time_min : float = 8.0 #45.0
+var round_time_max : float = 8.0 #148
 #-------------------------------
 var rom_dir: String = "Z:\\roms"
 #--------- Standalones

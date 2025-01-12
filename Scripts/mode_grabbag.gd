@@ -1,9 +1,12 @@
 extends Control
-
 # Swap console logos for txt
-# Never same game twice
+# user set-up
+# more options exposed to player in settings (pure random mode, weight by # of games, etc...)
 # move IGDB to seperate thread
-# controller menu? more options exposed to player
+# controller menu combo
+# robust error checking - ongoing crash check?
+# confirmation on "remove"
+# Improve IDGB search parameters
 
 @onready var sound_player = $AudioStreamPlayer2D
 @onready var time_label = $HBoxContainer/VBoxContainer/Label
@@ -175,39 +178,10 @@ func game_started(next_game : Dictionary):
 ## Stop the current timer and start a new one for the next round
 	if is_instance_valid(curr_timer):
 		curr_timer.stop()
-	var nxt_game = pick_game()
-	curr_timer = globals.create_timer(randf_range(usersettings.round_time_min, usersettings.round_time_max),switch_game, nxt_game)
 ## Update previous game to the currently running game..
 	previous_game = next_game
-
-func verify_process(pid: int, expected_title: String = "RetroArch") -> Dictionary:
-	var script_path = ProjectSettings.globalize_path("res://tools/verifyprocess.ps1")
-	var args = [
-		"-Command",
-		"Set-ExecutionPolicy Bypass -Scope Process;",
-		". " + script_path + "; Check-GameProcess -process_id " + str(pid) + " -expected_title '" + expected_title + "'"
-	]
-	var output = []
-	var exit_code = OS.execute("powershell.exe", args, output, true)
-	
-	if exit_code != 0 or output.size() == 0:
-		return {
-			"success": false,
-			"error": "Failed to execute verification script"
-		}
-	
-	# Parse JSON output from PowerShell
-	var json = JSON.parse_string(output[0])
-	if not json:
-		return {
-			"success": false,
-			"error": "Failed to parse script output"
-		}
-	
-	return {
-		"success": true,
-		"data": json
-	}
+	var following_game = pick_game()
+	curr_timer = globals.create_timer(randf_range(usersettings.round_time_min, usersettings.round_time_max),switch_game, following_game)
 
 func start_game(game: Dictionary) -> bool:
 	# Start timing from process creation
@@ -242,7 +216,6 @@ func start_game(game: Dictionary) -> bool:
 	# If we got here, the process exists but failed to properly start
 	push_error("Process created but failed to verify running state: " + game["name"])
 	OS.kill(game["pid"])
-	game["started"] = false
 	call_deferred("new_start_response", game)
 	return false
 
@@ -254,6 +227,15 @@ func query_game_info(game : Dictionary):
 	else:
 		notifman.notif_intro(game_qry["tex"], game_qry["name"], str(game["plat"]), str(game_qry["release"]))
 
+func pick_game() -> Dictionary:
+	var new_id = randi() % usersettings.bag_size
+	while new_id == game_list.find(previous_game):
+		print("Attempted to pick duplicate game...",previous_game["name"]," ", game_list.find(previous_game))
+		new_id = randi() % usersettings.bag_size
+	print("Previous game & ID: ",previous_game["name"]," ", game_list.find(previous_game), "New game ID: ", new_id)
+	return game_list[new_id]
+
+# POWERSHELL CMDS------------------------------------------------------------------------------
 func udp_send(cmd : String) -> Array:
 	# Safe quit RA via UDP command (Save & quit)
 	var udp_args : PackedStringArray = [
@@ -290,12 +272,35 @@ func bring_to_front(pid : int):
 	OS.execute("powershell.exe", args, output, true)
 	return output
 
-func pick_game() -> Dictionary:
-	var new_id = randi() % usersettings.bag_size
-	while new_id == game_list.find(previous_game):
-		new_id = randi() % usersettings.bag_size
-	print("Current id: ", game_list.find(previous_game), " Next id: ", new_id)
-	return game_list[new_id]
+func verify_process(pid: int, expected_title: String = "RetroArch") -> Dictionary:
+	var script_path = ProjectSettings.globalize_path("res://tools/verifyprocess.ps1")
+	var args = [
+		"-Command",
+		"Set-ExecutionPolicy Bypass -Scope Process;",
+		". " + script_path + "; Check-GameProcess -process_id " + str(pid) + " -expected_title '" + expected_title + "'"
+	]
+	var output = []
+	var exit_code = OS.execute("powershell.exe", args, output, true)
+	
+	if exit_code != 0 or output.size() == 0:
+		return {
+			"success": false,
+			"error": "Failed to execute verification script"
+		}
+	
+	# Parse JSON output from PowerShell
+	var json = JSON.parse_string(output[0])
+	if not json:
+		return {
+			"success": false,
+			"error": "Failed to parse script output"
+		}
+	
+	return {
+		"success": true,
+		"data": json
+	}
+
 	
 # BUTTON SIGNALS-----------------------------------------------------------------------------------------------------------------------------
 func _toggled(on: bool) -> void:
