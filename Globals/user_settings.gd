@@ -4,7 +4,6 @@ var system_dictionary : Dictionary
 
 var polygon : PackedVector2Array = []
 func _ready() -> void:
-	#notifman.set_defaults()
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	var current_size = DisplayServer.window_get_size() 
 	var v_button_bar_width = 60
@@ -13,14 +12,13 @@ func _ready() -> void:
 				Vector2(v_button_bar_width,current_size.y),
 				Vector2(0,current_size.y)]
 	get_window().set_mouse_passthrough_polygon(polygon)
-	#get_window().size = screen_size
 
 #1600, 900
 var screen_size: Vector2 = Vector2(1600,900)
 #-------------------------------
 var bag_size: int = 12
-var round_time_min : float = 8.0 #45.0
-var round_time_max : float = 8.0 #148
+var round_time_min : float = 45.0 #45.0
+var round_time_max : float = 148.0 #148
 #-------------------------------
 var rom_dir: String = "Z:\\roms"
 #--------- Standalones
