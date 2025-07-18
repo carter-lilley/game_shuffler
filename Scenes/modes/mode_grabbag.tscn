@@ -1,8 +1,8 @@
 [gd_scene load_steps=14 format=3 uid="uid://vf05yu8hwe1m"]
 
-[ext_resource type="Script" path="res://Scripts/mode_grabbag.gd" id="1_0pk6d"]
+[ext_resource type="Script" uid="uid://d2joct8xgci0b" path="res://Scripts/mode_grabbag.gd" id="1_0pk6d"]
 [ext_resource type="Texture2D" uid="uid://dhelt10flog05" path="res://Sprites/ui_icons/1x/pause.png" id="1_4rgtf"]
-[ext_resource type="Script" path="res://Globals/user_settings.gd" id="2_0als8"]
+[ext_resource type="Script" uid="uid://c42xejuf11xbd" path="res://Globals/user_settings.gd" id="2_0als8"]
 [ext_resource type="AudioStream" uid="uid://cjade33mfa1sg" path="res://Sounds/Chime.wav" id="3_tanc2"]
 [ext_resource type="Texture2D" uid="uid://obmpq4l4uwm5" path="res://Sprites/ui_icons/1x/cross.png" id="4_2ucpa"]
 [ext_resource type="Texture2D" uid="uid://b022tynb5hjol" path="res://Sprites/ui_icons/1x/forward.png" id="4_urtub"]
@@ -42,7 +42,6 @@ layout_mode = 2
 alignment = 2
 
 [node name="Label" type="Label" parent="HBoxContainer/VBoxContainer"]
-visible = false
 layout_mode = 2
 text = "00:00"
 

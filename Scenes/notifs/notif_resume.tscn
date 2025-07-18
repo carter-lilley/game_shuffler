@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://btu43vp4jk0ws"]
 
 [ext_resource type="Texture2D" uid="uid://diibd4qmx2fsm" path="res://Images/placeholder_cover.jpg" id="1_o50kx"]
-[ext_resource type="Script" path="res://Scripts/notif_resume_controller.gd" id="1_oml0a"]
+[ext_resource type="Script" uid="uid://b0i6hsihynp0d" path="res://Scripts/notif_resume_controller.gd" id="1_oml0a"]
 
 [node name="GameResume" type="Control"]
 layout_mode = 3

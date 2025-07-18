@@ -36,9 +36,9 @@ func notif_settings():
 
 func set_defaults():
 	var settings_menu = settings_menu_asset.instantiate()
-	settings_menu.initialize_system_states()
+	settings_menu.initialize_systems()
 	print("Default settings initialized. ")
-	usersettings.system_dictionary = settings_menu.system_states
+	#usersettings.system_dictionary = settings_menu.system_states
 	settings_menu.queue_free()
 
 func update_list(system_dic: Dictionary):

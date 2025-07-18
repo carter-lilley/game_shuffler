@@ -1,11 +1,11 @@
 [gd_scene load_steps=9 format=3 uid="uid://dqxk2mnx6nmpu"]
 
-[ext_resource type="Script" path="res://Scripts/notif_intro.gd" id="1_eny2n"]
+[ext_resource type="Script" uid="uid://cwe6513dqbmwy" path="res://Scripts/notif_intro.gd" id="1_eny2n"]
 [ext_resource type="Texture2D" uid="uid://diibd4qmx2fsm" path="res://Images/placeholder_cover.jpg" id="1_eo18v"]
 [ext_resource type="Theme" uid="uid://r7auhejeh823" path="res://Themes/panel_theme.tres" id="2_bt6pu"]
 [ext_resource type="FontFile" uid="uid://bhwdfdifwm12r" path="res://Fonts/Impact/impact.ttf" id="2_rdjiu"]
 [ext_resource type="FontFile" uid="uid://corxc3kvlwll0" path="res://Fonts/Univers/UniversRegular.ttf" id="3_ttny6"]
-[ext_resource type="Script" path="res://Scripts/autoscale_label.gd" id="4_oi772"]
+[ext_resource type="Script" uid="uid://ba4xsq4jr2np2" path="res://Scripts/autoscale_label.gd" id="4_oi772"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_p525s"]
 font = ExtResource("2_rdjiu")
