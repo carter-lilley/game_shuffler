@@ -8,6 +8,8 @@ extends Control
 # confirmation on "remove"
 # Improve IDGB search parameters
 
+@onready var preloader = $preloader
+
 @onready var sound_player = $AudioStreamPlayer2D
 @onready var time_label = $HBoxContainer/VBoxContainer/Label
 @onready var btn_start = $HBoxContainer/VBoxContainer/Start
@@ -125,6 +127,13 @@ func stop_game(game: Dictionary) -> bool:
 var game_thread : Thread = Thread.new()
 func start_game(game : Dictionary) -> void:
 	if not game["started"]:
+		# FIRST START LOGIC
+		var updated_game: Dictionary = await preloader.start_preloading(game)
+		if updated_game.has("path"):
+			game["path"] = updated_game["path"]
+			print("Updated local path: ", game["path"])
+		else:
+			push_warning("Preloading did not update game path!")
 		# Run create() on a thread so it doesn't block
 		var err = game_thread.start(create.bind(game))
 		if err != OK:
@@ -132,7 +141,7 @@ func start_game(game : Dictionary) -> void:
 		## query_game_info(next_game)
 	else:
 		resume(game)
-
+	
 func game_started(next_game : Dictionary):
 ## End the loading screen and bring the new prc to front
 	emit_signal("load_open")
@@ -265,6 +274,7 @@ func _diag_confirm(_box : AcceptDialog):
 	notifman.notif_end()
 
 func shutdown():
+	clear_directory("user://temp")
 	for game in bag:
 		if game["pid"] != -1 and OS.is_process_running(game["pid"]):
 			OS.kill(game["pid"])
@@ -299,7 +309,25 @@ func _on_settings_pressed() -> void:
 	notifman.notif_settings()
 
 # utils-----------------------------------------------------------------------------------------------------------------------------
-	
+func clear_directory(path: String) -> void:
+	var dir = DirAccess.open(path)
+	if dir:
+		dir.list_dir_begin()
+		var entry = dir.get_next()
+		while entry != "":
+			if entry != "." and entry != "..":
+				var full_path = path + "/" + entry
+				if dir.current_is_dir():
+					clear_directory(full_path)  # recursive delete
+					# Need a new DirAccess to remove the empty folder:
+					var sub_dir = DirAccess.open(path)
+					if sub_dir:
+						sub_dir.remove(full_path)
+				else:
+					dir.remove(full_path)
+			entry = dir.get_next()
+		dir.list_dir_end()
+
 func resolve_args(game: Dictionary) -> Array:
 	var system = usersettings.sys_default.get(game["sys"], {})
 	var core = usersettings.ra_cores_dir + system.get("core", "")

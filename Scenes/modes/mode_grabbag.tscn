@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://vf05yu8hwe1m"]
+[gd_scene load_steps=15 format=3 uid="uid://vf05yu8hwe1m"]
 
 [ext_resource type="Script" uid="uid://d2joct8xgci0b" path="res://Scripts/mode_grabbag.gd" id="1_0pk6d"]
 [ext_resource type="Texture2D" uid="uid://dhelt10flog05" path="res://Sprites/ui_icons/1x/pause.png" id="1_4rgtf"]
@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://h6q3wtvw3c6j" path="res://Sprites/ui_icons/1x/gear.png" id="6_oam54"]
 [ext_resource type="Texture2D" uid="uid://j4cmw1ripp26" path="res://Sprites/ui_icons/1x/next.png" id="6_r3txv"]
 [ext_resource type="Texture2D" uid="uid://dftij4iccvdth" path="res://Sprites/ui_icons/1x/return.png" id="7_qddy8"]
+[ext_resource type="Script" uid="uid://c7jchj6x4yk8s" path="res://Scripts/preloader.gd" id="9_0iey7"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wb2bi"]
 
@@ -78,8 +79,24 @@ layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_4ki21")
 icon = ExtResource("7_qddy8")
 
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ProgressBar" type="ProgressBar" parent="CenterContainer"]
+custom_minimum_size = Vector2(512, 64)
+layout_mode = 2
+
 [node name="user_settings" type="Node" parent="."]
 script = ExtResource("2_0als8")
+
+[node name="preloader" type="Node" parent="."]
+script = ExtResource("9_0iey7")
 
 [node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("3_tanc2")
