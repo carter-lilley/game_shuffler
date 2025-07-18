@@ -50,7 +50,7 @@ var screen_poly : bool = false
 func notif_start():
 	active_notifs += 1
 	if active_notifs > 0 and !screen_poly:
-		print("Notifman: Fullscreen poly enabled. Active notifs: ", active_notifs)
+		#print("Notifman: Fullscreen poly enabled. Active notifs: ", active_notifs)
 		screen_poly = true
 		get_window().set_mouse_passthrough_polygon([])
 	
@@ -58,6 +58,6 @@ func notif_end():
 # Decrement the active notifications counter
 	active_notifs -= 1
 	if active_notifs == 0:
-		print("Notifman: Fullscreen poly disabled. Active notifs: ", active_notifs)
+		#print("Notifman: Fullscreen poly disabled. Active notifs: ", active_notifs)
 		screen_poly = false
 		get_window().set_mouse_passthrough_polygon(usersettings.polygon)

@@ -92,11 +92,36 @@ func switch_game(next_game:Dictionary):
 	load_screen.close() #start loading animation on new thread?
 	sound_player.play()
 	if previous_game["pid"] != -1:
-		stop_game(previous_game)
-	else: print("No previous game process to stop.")
-	start_game(next_game)
-	#game_started(next_game)
+		var stopped := await stop_game(previous_game)
+		if not stopped:
+			push_error("Failed to stop previous game: " + previous_game["name"])
+			return
+	else:
+		print("No previous game process to stop.")
 
+	start_game(next_game)
+
+func stop_game(game: Dictionary) -> bool:
+	var method = usersettings.sys_default.get(game["sys"], {}).get("method", {})
+	if method == null:
+		push_error("No suspend method found for system: " + game["sys"])
+	print("Stopping ", game["name"], " by ", method)
+	match method:
+		"udp":
+			udp_send("QUIT")
+			await get_tree().create_timer(0.5).timeout
+			udp_send("QUIT")
+			await get_tree().create_timer(1.0).timeout
+			if OS.is_process_running(game["pid"]):
+				print("Game process still running after UDP QUIT.")
+				return false
+		"suspend":
+			var success := await pssuspend(game)
+			if not success:
+				print("Failed to suspend process.")
+				return false
+	return true
+			
 var game_thread : Thread = Thread.new()
 func start_game(game : Dictionary) -> void:
 	if not game["started"]:
@@ -105,19 +130,8 @@ func start_game(game : Dictionary) -> void:
 		if err != OK:
 			push_error("Failed to start game thread")
 		## query_game_info(next_game)
-	#else:
-		#resume(game)
-	
-func stop_game(game: Dictionary) -> void:
-	var suspend_method = usersettings.sys_default.get(game["sys"], {}).get("suspend_method", {})
-	match suspend_method.get("method", ""):
-		"udp":
-			udp_send("QUIT")
-			await get_tree().create_timer(0.5).timeout
-			udp_send("QUIT")
-		"suspend":
-			await pssuspend(game)
-			
+	else:
+		resume(game)
 
 func game_started(next_game : Dictionary):
 ## End the loading screen and bring the new prc to front
@@ -133,20 +147,29 @@ func game_started(next_game : Dictionary):
 	var following_game = pick_game()
 	curr_timer = globals.create_timer(randf_range(usersettings.round_time_min, usersettings.round_time_max),switch_game, following_game)
 
+func resume(game: Dictionary):
+	if usersettings.sys_default.get(game["sys"], {}).get("method", {}) == "udp":
+		# Run create() on a thread so it doesn't block
+		var err = game_thread.start(create.bind(game))
+		if err != OK:
+			push_error("Failed to start game thread")
+	else:
+		psresume(game)
+
 func create(game: Dictionary) -> bool:
 	var emu: String = usersettings.sys_default.get(game["sys"], {}).get("emu", "")
 	var args: PackedStringArray = resolve_args(game)
 	var pid := OS.create_process(emu, args, true)
 	if pid == -1:
 		push_error("Failed to start process for: " + game["name"])
-		call_deferred("new_start_response", game)
+		call_deferred("create_response", game)
 		return false
 	game["pid"] = pid
 	game["started"] = true
-	call_deferred("new_start_response", game)
+	call_deferred("create_response", game)
 	return true
 
-func new_start_response(next_game : Dictionary):
+func create_response(next_game : Dictionary):
 	var response = game_thread.wait_to_finish()
 	if not response:
 		print("Failed to start game: " + next_game["name"])
@@ -171,12 +194,11 @@ func pick_game() -> Dictionary:
 	while new_id == bag.find(previous_game):
 		print("Attempted to pick duplicate game...",previous_game["name"]," ", bag.find(previous_game))
 		new_id = randi() % usersettings.bag_size
-	print("Previous game & ID: ",previous_game["name"]," ", bag.find(previous_game), "New game ID: ", new_id)
+	#print("Previous game & ID: ",previous_game["name"]," ", bag.find(previous_game), "New game ID: ", new_id)
 	return bag[new_id]
 
 # POWERSHELL CMDS------------------------------------------------------------------------------
 func udp_send(cmd : String) -> Array:
-	# Safe quit RA via UDP command (Save & quit)
 	var udp_args : PackedStringArray = [
 		"udpsend", "localhost", "55355", cmd
 		]
@@ -184,14 +206,16 @@ func udp_send(cmd : String) -> Array:
 	var result = OS.execute(sfk_path, udp_args, output, true)
 	return output
 
-func pssuspend(game : Dictionary):
+func pssuspend(game : Dictionary) -> bool:
 	game["active"] = false
 	var suspend = PackedStringArray([game["pid"]])
 	var result = OS.execute(pssuspend_path,suspend, [], true)
 	if result != OK:
 		print("Failed to suspend process: ", game["pid"])
+		return false
 	else:
 		print("Suspending Process: ", game["pid"])
+		return true
 
 func psresume(game : Dictionary):
 	game["active"] = true
@@ -275,6 +299,7 @@ func _on_settings_pressed() -> void:
 	notifman.notif_settings()
 
 # utils-----------------------------------------------------------------------------------------------------------------------------
+	
 func resolve_args(game: Dictionary) -> Array:
 	var system = usersettings.sys_default.get(game["sys"], {})
 	var core = usersettings.ra_cores_dir + system.get("core", "")
