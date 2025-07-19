@@ -34,6 +34,7 @@ var game_blank : Dictionary = {
 }
 
 func _ready() -> void:
+	preloader.connect("preload_completed", Callable(self, "_on_preload_completed"))
 	print("Ready...")
 	randomize()
 
@@ -128,20 +129,25 @@ var game_thread : Thread = Thread.new()
 func start_game(game : Dictionary) -> void:
 	if not game["started"]:
 		# FIRST START LOGIC
-		var updated_game: Dictionary = await preloader.start_preloading(game)
-		if updated_game.has("path"):
-			game["path"] = updated_game["path"]
-			print("Updated local path: ", game["path"])
-		else:
-			push_warning("Preloading did not update game path!")
-		# Run create() on a thread so it doesn't block
-		var err = game_thread.start(create.bind(game))
-		if err != OK:
-			push_error("Failed to start game thread")
-		## query_game_info(next_game)
+		preloader.start_preloading(game)
 	else:
 		resume(game)
-	
+		game_started(game)
+		
+func _on_preload_completed(original_game: Dictionary, updated_game: Dictionary) -> void:
+	if updated_game.has("path"):
+		print("Updated path after preload:", updated_game["path"])
+		# Update original game dict reference to keep state consistent
+		for key in updated_game.keys():
+			original_game[key] = updated_game[key]
+	else:
+		push_warning("Preloading did not update game path!")
+			## Run create() on a thread so it doesn't block
+	var err = game_thread.start(create.bind(original_game))
+	if err != OK:
+		push_error("Failed to start game thread")
+	## query_game_info(next_game)
+
 func game_started(next_game : Dictionary):
 ## End the loading screen and bring the new prc to front
 	emit_signal("load_open")
@@ -228,8 +234,8 @@ func pssuspend(game : Dictionary) -> bool:
 
 func psresume(game : Dictionary):
 	game["active"] = true
-	var resume = PackedStringArray(["-r", game["pid"]])
-	var result = OS.execute(pssuspend_path,resume, [], true)
+	var args = PackedStringArray(["-r", game["pid"]])
+	var result = OS.execute(pssuspend_path,args, [], true)
 	if result != OK:
 		print("Failed to resume process: ", game["pid"])
 	else:

@@ -1,117 +1,107 @@
 extends Node
 class_name Preloader
 
+signal progress_updated(value: float)
+signal preload_completed(original_game: Dictionary, updated_game: Dictionary)
 
 @onready var progress_bar = $"../CenterContainer/ProgressBar"
 
-var _is_running: bool = false
-var _thread := Thread.new()
-var _thread_result: Dictionary = {}
-var _current_copy_progress: float = 0.0
-var current_copy_progress: float:
-	get:
-		return _current_copy_progress
-	set(value):
-		_current_copy_progress = value
-var _progress_mutex := Mutex.new()
+var _thread: Thread
+var _is_running := false
 
 func _ready():
 	progress_bar.visible = false
+	connect("progress_updated", Callable(self, "_on_progress_updated"))
+	connect("preload_completed", Callable(self, "_on_preload_completed"))
 
 func _process(_delta):
-	if _is_running:
-		progress_bar.visible = true
-		_progress_mutex.lock()
-		progress_bar.value = current_copy_progress * 100
-		_progress_mutex.unlock()
-	else:
-		progress_bar.visible = false
+	progress_bar.visible = _is_running
 
-func start_preloading(game: Dictionary) -> Dictionary:
+func start_preloading(game: Dictionary) -> void:
 	if _is_running:
-		push_warning("Preloading is already running.")
-		return {}
+		push_warning("Preloading already in progress.")
+		return
+
+	# Ensure previous thread is cleaned up
+	if _thread and _thread.is_alive():
+		_thread.wait_to_finish()
+
+	_thread = Thread.new()
 	_ensure_temp_folder()
+
 	_is_running = true
-	_thread_result = {}
-	_set_copy_progress(0.0)
-
+	progress_bar.value = 0
 	print("Starting preload thread")
-	var error := _thread.start(_threaded_preload.bind(game))
-	if error != OK:
-		push_error("Failed to start thread.")
-		_is_running = false
-		return {}
-	await _wait_for_thread()
-	_is_running = false
-	print("Preload thread finished")
-	return _thread_result
 
-func _wait_for_thread() -> void:
-	var tries := 0
-	while _thread.is_alive() and tries < 1000:
-		await get_tree().process_frame
-		tries += 1
-	if tries >= 1000:
-		push_warning("Thread wait timeout.")
-	_thread.wait_to_finish()
+	var err := _thread.start(_threaded_preload.bind(game))
+	if err != OK:
+		push_error("Failed to start thread")
+		_is_running = false
+
+func _on_progress_updated(value: float) -> void:
+	progress_bar.value = value * 100.0
+
+func _on_preload_completed(original_game: Dictionary, updated_game: Dictionary) -> void:
+	if _thread and _thread.is_alive():
+		_thread.wait_to_finish()
+
+	_thread = null
+	_is_running = false
+	progress_bar.visible = false
+	print("Preload completed.")
+	# Handle updated_game if needed
 
 func _ensure_temp_folder() -> void:
 	var dir := DirAccess.open("user://")
 	if not dir.dir_exists("temp"):
 		dir.make_dir("temp")
-	
+
 func _threaded_preload(game: Dictionary) -> void:
 	print("Thread started")
-	# Error handling wrapper
-	var error_occurred := false
-
-	# Try-catch style using 'yield' not supported, so use error flag
 	var from_path: String = game.get("path", "")
 	if from_path == "":
-		push_error("No valid input path found.")
-		error_occurred = true
-		_thread_result = game
+		push_error("No path provided.")
+		call_deferred("emit_signal", "preload_completed", game, game)
 		return
 
-	var file_name := from_path.get_file()
+	var file_name = from_path.get_file()
 	var to_path_virtual = "user://temp/" + file_name
 	var to_path = ProjectSettings.globalize_path(to_path_virtual)
-	to_path = to_path.replace("/", "\\")  # Normalize for Windows if needed
 
-	var success := _copy_file_with_progress(from_path, to_path)
-	if not success:
-		push_error("Failed to copy file: %s to %s" % [from_path, to_path])
-		error_occurred = true
-		_thread_result = game
+	if not _copy_file_with_progress(from_path, to_path):
+		push_error("Copy failed.")
+		call_deferred("emit_signal", "preload_completed", game, game)
 		return
 
-	if not error_occurred:
-		game["path"] = to_path
-		_thread_result = game
-	print("Thread ending")
+	var updated_game = game.duplicate()
+	updated_game["path"] = to_path
+	call_deferred("emit_signal", "preload_completed", game, updated_game)
 
 func _copy_file_with_progress(from_path: String, to_path: String, chunk_size := 4 * 1024 * 1024) -> bool:
 	var total_size = _get_file_size(from_path)
-	if total_size == 0:
+	if total_size <= 0:
 		return false
-	var from_file := FileAccess.open(from_path, FileAccess.READ)
+
+	var from_file = FileAccess.open(from_path, FileAccess.READ)
 	if from_file == null:
 		return false
-	var to_file := FileAccess.open(to_path, FileAccess.WRITE)
+
+	var to_file = FileAccess.open(to_path, FileAccess.WRITE)
 	if to_file == null:
 		from_file.close()
 		return false
-	var copied: int = 0
+
+	var copied := 0
 	while not from_file.eof_reached():
 		var chunk = from_file.get_buffer(chunk_size)
 		to_file.store_buffer(chunk)
 		copied += chunk.size()
-		_set_copy_progress(float(copied) / total_size)
-		OS.delay_msec(1)  # Yield to avoid blocking other threads
+		call_deferred("emit_signal", "progress_updated", clamp(float(copied) / total_size, 0.0, 1.0))
+		OS.delay_msec(1)  # Yield a little to avoid stalling the thread
+
 	from_file.close()
 	to_file.close()
-	_set_copy_progress(1.0)
+	call_deferred("emit_signal", "progress_updated", 1.0)
 	return true
 
 func _get_file_size(path: String) -> int:
@@ -121,9 +111,3 @@ func _get_file_size(path: String) -> int:
 		file.close()
 		return size
 	return 0
-
-# Thread-safe setter for progress
-func _set_copy_progress(value: float) -> void:
-	_progress_mutex.lock()
-	current_copy_progress = clamp(value, 0.0, 1.0)
-	_progress_mutex.unlock()

@@ -6,12 +6,12 @@ signal notif_complete
 
 var closing: bool = false
 func close() -> void:
-	closing == true
+	closing = true
 	tex_rect.material.set_shader_parameter("transition_completeness", 1.0)
 	globals.new_tween(tex_rect, "material:shader_parameter/transition_completeness", 0.0,.45, Tween.EASE_OUT, Tween.TRANS_QUART,0.0, false, closed)
 
 func closed() -> void:
-	closing == false
+	closing = false
 
 func open():
 	if closing:

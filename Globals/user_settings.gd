@@ -24,7 +24,7 @@ var rom_dir: String = "Z:\\roms"
 #--------- Standalones
 var cemu_dir: String = "D:\\Emulation\\storage\\cemu\\Cemu.exe"
 var lime3ds_dir: String = "D:\\Emulation\\storage\\lime3ds\\lime3ds.exe"
-var dolphin_dir: String = "D:\\Emulation\\storage\\dolphin\\Dolphin.exe"
+var dolphin: String = "D:\\Emulation\\storage\\dolphin\\Dolphin.exe"
 var pcsx2_dir: String = "D:\\Emulation\\storage\\pcsx2\\pcsx2-qt.exe"
 var rpcs3_dir: String = "D:\\Emulation\\storage\\rpcs3\\rpcs3.exe"
 var vita3k_dir: String = "D:\\Emulation\\storage\\Vita3k\\Vita3K.exe"
@@ -183,12 +183,12 @@ var sys_default := {
 		"default_state": true,
 		"icon": preload("res://Sprites/ui_logos/Nintendo Entertainment System.png")},
 	"ngc": {"name": "Nintendo GameCube", 
-		"emu": retroarch, 
+		"emu": dolphin, 
 		"core": "\\dolphin_libretro.dll", 
-		"args": ["-e" , "{PATH}", "--config" , "Dolphin.Display.Fullscreen=True"],
-		"method": "udp",
-		"default_state": false,
-		"icon": preload("res://Sprites/ui_logos/Nintendo Entertainment System.png")},
+		"args": ["-e" , "{PATH}", "--batch" ,"--config" , "Dolphin.Display.Fullscreen=True"],
+		"method": "suspend",
+		"default_state": true,
+		"icon": preload("res://Sprites/ui_logos/Nintendo GameCube.png")},
 	#"pico8": {"name": "pico8", "emu": "", "core": "", "args": ""},
 	"ps": {"name": "PlayStation", 
 		"emu": retroarch, 
