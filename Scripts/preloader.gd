@@ -12,44 +12,29 @@ var _is_running := false
 func _ready():
 	progress_bar.visible = false
 	connect("progress_updated", Callable(self, "_on_progress_updated"))
-	connect("preload_completed", Callable(self, "_on_preload_completed"))
 
 func _process(_delta):
 	progress_bar.visible = _is_running
 
 func start_preloading(game: Dictionary) -> void:
 	if _is_running:
-		push_warning("Preloading already in progress.")
+		push_warning("Preloader already running.")
 		return
 
-	# Ensure previous thread is cleaned up
-	if _thread and _thread.is_alive():
-		_thread.wait_to_finish()
+	if not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path("user://temp")):
+		DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("user://temp"))
 
 	_thread = Thread.new()
-	_ensure_temp_folder()
+	var err = _thread.start(_threaded_preload.bind(game))
+	if err != OK:
+		push_error("Failed to start preload thread.")
+		_thread = null
+		return
 
 	_is_running = true
-	progress_bar.value = 0
-	print("Starting preload thread")
-
-	var err := _thread.start(_threaded_preload.bind(game))
-	if err != OK:
-		push_error("Failed to start thread")
-		_is_running = false
 
 func _on_progress_updated(value: float) -> void:
 	progress_bar.value = value * 100.0
-
-func _on_preload_completed(original_game: Dictionary, updated_game: Dictionary) -> void:
-	if _thread and _thread.is_alive():
-		_thread.wait_to_finish()
-
-	_thread = null
-	_is_running = false
-	progress_bar.visible = false
-	print("Preload completed.")
-	# Handle updated_game if needed
 
 func _ensure_temp_folder() -> void:
 	var dir := DirAccess.open("user://")
@@ -76,7 +61,11 @@ func _threaded_preload(game: Dictionary) -> void:
 	var updated_game = game.duplicate()
 	updated_game["path"] = to_path
 	call_deferred("emit_signal", "preload_completed", game, updated_game)
-
+	
+	print("Preload completed. Closing thread.")
+	_is_running = false
+	_thread.call_deferred("wait_to_finish") # Safely clean up after emitting
+	
 func _copy_file_with_progress(from_path: String, to_path: String, chunk_size := 4 * 1024 * 1024) -> bool:
 	var total_size = _get_file_size(from_path)
 	if total_size <= 0:

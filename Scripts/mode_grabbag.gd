@@ -20,6 +20,7 @@ extends Control
 @onready var icon_pause = preload("res://Sprites/ui_icons/1x/pause.png")
 
 signal load_open
+signal game_created(game: Dictionary)
 
 var sfk_path = ProjectSettings.globalize_path("res://tools/sfk.exe")
 var pssuspend_path = ProjectSettings.globalize_path("res://tools/pssuspend.exe")
@@ -108,14 +109,15 @@ func stop_game(game: Dictionary) -> bool:
 	var method = usersettings.sys_default.get(game["sys"], {}).get("method", {})
 	if method == null:
 		push_error("No suspend method found for system: " + game["sys"])
+		return false
 	print("Stopping ", game["name"], " by ", method)
 	match method:
 		"udp":
 			udp_send("QUIT")
 			await get_tree().create_timer(0.5).timeout
 			udp_send("QUIT")
-			await get_tree().create_timer(1.0).timeout
-			if OS.is_process_running(game["pid"]):
+			var confirmed := await confirm_close(game["pid"])
+			if not confirmed:
 				print("Game process still running after UDP QUIT.")
 				return false
 		"suspend":
@@ -125,14 +127,13 @@ func stop_game(game: Dictionary) -> bool:
 				return false
 	return true
 			
-var game_thread : Thread = Thread.new()
 func start_game(game : Dictionary) -> void:
 	if not game["started"]:
 		# FIRST START LOGIC
 		preloader.start_preloading(game)
-	else:
+		#create(game)
+	else: 
 		resume(game)
-		game_started(game)
 		
 func _on_preload_completed(original_game: Dictionary, updated_game: Dictionary) -> void:
 	if updated_game.has("path"):
@@ -142,10 +143,7 @@ func _on_preload_completed(original_game: Dictionary, updated_game: Dictionary) 
 			original_game[key] = updated_game[key]
 	else:
 		push_warning("Preloading did not update game path!")
-			## Run create() on a thread so it doesn't block
-	var err = game_thread.start(create.bind(original_game))
-	if err != OK:
-		push_error("Failed to start game thread")
+	create(original_game)
 	## query_game_info(next_game)
 
 func game_started(next_game : Dictionary):
@@ -165,36 +163,26 @@ func game_started(next_game : Dictionary):
 func resume(game: Dictionary):
 	if usersettings.sys_default.get(game["sys"], {}).get("method", {}) == "udp":
 		# Run create() on a thread so it doesn't block
-		var err = game_thread.start(create.bind(game))
-		if err != OK:
-			push_error("Failed to start game thread")
+		create(game)
 	else:
 		psresume(game)
+		game_started(game)
+	
 
-func create(game: Dictionary) -> bool:
+func create(game: Dictionary):
 	var emu: String = usersettings.sys_default.get(game["sys"], {}).get("emu", "")
 	var args: PackedStringArray = resolve_args(game)
 	var pid := OS.create_process(emu, args, true)
 	if pid == -1:
-		push_error("Failed to start process for: " + game["name"])
-		call_deferred("create_response", game)
-		return false
-	game["pid"] = pid
-	game["started"] = true
-	call_deferred("create_response", game)
-	return true
-
-func create_response(next_game : Dictionary):
-	var response = game_thread.wait_to_finish()
-	if not response:
-		print("Failed to start game: " + next_game["name"])
-		previous_game = next_game
+		print("Failed to start game: " + game["name"])
+		previous_game = game
 		emit_signal("load_open")
-		_remove()
-		return 
+		_remove() 
 	else:
-		game_started(next_game)
-		print("Game started.")
+		print("Game successfully started.")
+		game["pid"] = pid
+		game["started"] = true
+		game_started(game)
 
 func query_game_info(game : Dictionary):
 	var game_qry = await IGDB.query_game(game["name"], game["plat"])
@@ -315,6 +303,19 @@ func _on_settings_pressed() -> void:
 	notifman.notif_settings()
 
 # utils-----------------------------------------------------------------------------------------------------------------------------
+func confirm_close(pid : int) -> bool:
+	const MAX_WAIT := 5.0 # seconds
+	const CHECK_INTERVAL := 0.2 # seconds
+	var elapsed := 0.0
+	while elapsed < MAX_WAIT:
+		if not OS.is_process_running(pid):
+			print("Process terminated successfully.")
+			return true
+		await get_tree().create_timer(CHECK_INTERVAL).timeout
+		elapsed += CHECK_INTERVAL
+	print("Timed out waiting for process to terminate.")
+	return false
+
 func clear_directory(path: String) -> void:
 	var dir = DirAccess.open(path)
 	if dir:

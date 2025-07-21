@@ -40,13 +40,16 @@ func create_timer(secs: float, function: Callable, arg: Variant = null):
 	timer.wait_time = secs
 	timer.one_shot = true
 	timer.autostart = true
-	add_child(timer)  # Add the timer as a child of the current node (assuming this is a Node or Control)
-	# Connect the timeout signal to call the specified function
-	if arg != null:
-		timer.timeout.connect(function.bind(arg))
-	else:
-		timer.timeout.connect(function)
+	add_child(timer)  
 	timer_list.append(timer)
+	timer.timeout.connect(func():
+		if arg != null:
+			function.call(arg)
+		else:
+			function.call()
+		timer_list.erase(timer)
+		timer.queue_free()
+	)
 	return timer
 
 func dir_contents(path) -> PackedStringArray:
