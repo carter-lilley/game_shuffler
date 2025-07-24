@@ -1,0 +1,119 @@
+[gd_scene load_steps=17 format=3 uid="uid://vf05yu8hwe1m"]
+
+[ext_resource type="Texture2D" uid="uid://b022tynb5hjol" path="res://Sprites/ui_icons/1x/forward.png" id="1_w0jxp"]
+[ext_resource type="Texture2D" uid="uid://dhelt10flog05" path="res://Sprites/ui_icons/1x/pause.png" id="2_oh30t"]
+[ext_resource type="Texture2D" uid="uid://obmpq4l4uwm5" path="res://Sprites/ui_icons/1x/cross.png" id="3_3w63a"]
+[ext_resource type="Texture2D" uid="uid://j4cmw1ripp26" path="res://Sprites/ui_icons/1x/next.png" id="4_48krp"]
+[ext_resource type="Texture2D" uid="uid://h6q3wtvw3c6j" path="res://Sprites/ui_icons/1x/gear.png" id="5_ll0ms"]
+[ext_resource type="Texture2D" uid="uid://dftij4iccvdth" path="res://Sprites/ui_icons/1x/return.png" id="6_8pnrg"]
+[ext_resource type="Script" uid="uid://c42xejuf11xbd" path="res://Globals/user_settings.gd" id="7_2ku1e"]
+[ext_resource type="Script" uid="uid://c7jchj6x4yk8s" path="res://Scripts/preloader.gd" id="8_xdwrw"]
+[ext_resource type="Script" uid="uid://c2o7puljrib5u" path="res://Scripts/Managers/process_manager.gd" id="9_8sup3"]
+[ext_resource type="Script" uid="uid://d2joct8xgci0b" path="res://Scripts/Managers/game_manager.gd" id="10_xn1hb"]
+[ext_resource type="AudioStream" uid="uid://cjade33mfa1sg" path="res://Sounds/Chime.wav" id="11_jrn5c"]
+[ext_resource type="Script" uid="uid://cwpyhs72o2vf6" path="res://Scripts/Managers/HTTP_manager.gd" id="11_oh30t"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wb2bi"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_027c1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ml8ra"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4ki21"]
+
+[node name="main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_group_ = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer"]
+custom_minimum_size = Vector2(25, 0)
+layout_mode = 2
+alignment = 2
+
+[node name="Label" type="Label" parent="HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "00:00"
+
+[node name="Start" type="Button" parent="HBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 45)
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_wb2bi")
+toggle_mode = true
+icon = ExtResource("1_w0jxp")
+
+[node name="Pause" type="Button" parent="HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_027c1")
+toggle_mode = true
+icon = ExtResource("2_oh30t")
+
+[node name="Remove" type="Button" parent="HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ml8ra")
+icon = ExtResource("3_3w63a")
+
+[node name="Skip" type="Button" parent="HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_4ki21")
+icon = ExtResource("4_48krp")
+
+[node name="Settings" type="Button" parent="HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_4ki21")
+icon = ExtResource("5_ll0ms")
+
+[node name="Restart" type="Button" parent="HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_4ki21")
+icon = ExtResource("6_8pnrg")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ProgressBar" type="ProgressBar" parent="CenterContainer"]
+custom_minimum_size = Vector2(512, 64)
+layout_mode = 2
+
+[node name="user_settings" type="Node" parent="."]
+script = ExtResource("7_2ku1e")
+
+[node name="preloader" type="Node" parent="."]
+script = ExtResource("8_xdwrw")
+
+[node name="process_manager" type="Node" parent="."]
+script = ExtResource("9_8sup3")
+
+[node name="game_manager" type="Node" parent="."]
+script = ExtResource("10_xn1hb")
+
+[node name="HTTP_manager" type="Node" parent="."]
+script = ExtResource("11_oh30t")
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("11_jrn5c")
+
+[connection signal="toggled" from="HBoxContainer/VBoxContainer/Start" to="game_manager" method="_toggled"]
+[connection signal="toggled" from="HBoxContainer/VBoxContainer/Pause" to="game_manager" method="_pause"]
+[connection signal="pressed" from="HBoxContainer/VBoxContainer/Remove" to="game_manager" method="_remove"]
+[connection signal="pressed" from="HBoxContainer/VBoxContainer/Skip" to="game_manager" method="_skip"]
+[connection signal="pressed" from="HBoxContainer/VBoxContainer/Settings" to="game_manager" method="_on_settings_pressed"]
+[connection signal="pressed" from="HBoxContainer/VBoxContainer/Restart" to="game_manager" method="_restart"]

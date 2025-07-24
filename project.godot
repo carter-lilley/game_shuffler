@@ -10,15 +10,14 @@ config_version=5
 
 [application]
 
-config/name="game_shuffler_RA"
-run/main_scene="res://Scenes/modes/mode_grabbag.tscn"
+config/name="game_shuffler"
+run/main_scene="res://Scenes/modes/main.tscn"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
 notifman="*res://Globals/notif_man.tscn"
-IGDB="*res://Globals/IGDB_handler.tscn"
 usersettings="*res://Globals/user_settings.gd"
 globals="*res://Globals/globals.gd"
 

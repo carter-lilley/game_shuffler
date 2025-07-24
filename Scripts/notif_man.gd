@@ -9,14 +9,14 @@ func _ready() -> void:
 @onready var notif_intro_asset = preload("res://Scenes/notifs/notif_intro.tscn")  # Load the scene as a PackedScene
 
 func notif_intro(tex : Texture2D, title : String, system : String, release : String):
+	var sys_title = usersettings.sys_default.get(system)["name"]
 	var notif_intro_inst = notif_intro_asset.instantiate()
 	notif_intro_inst.connect("notif_complete",notif_end)
 	add_child(notif_intro_inst)
 	notif_start()
-	notif_intro_inst.set_info(title,system,release)
+	notif_intro_inst.set_info(title,sys_title,release)
 	if tex:
 		notif_intro_inst.set_art(tex)
-
 
 @onready var notif_load_asset = preload("res://Scenes/notifs/notif_load.tscn") 
 func notif_load():
@@ -28,6 +28,7 @@ func notif_load():
 
 @onready var settings_menu_asset = preload("res://Scenes/system_menu.tscn") 
 func notif_settings():
+	print("SETTINGS")
 	var settings_menu = settings_menu_asset.instantiate()
 	settings_menu.connect("menu_close",notif_end)
 	notif_start()
@@ -50,7 +51,7 @@ var screen_poly : bool = false
 func notif_start():
 	active_notifs += 1
 	if active_notifs > 0 and !screen_poly:
-		print("Notifman: Fullscreen poly enabled. Active notifs: ", active_notifs)
+		#print("Notifman: Fullscreen poly enabled. Active notifs: ", active_notifs)
 		screen_poly = true
 		get_window().set_mouse_passthrough_polygon([])
 	
@@ -58,6 +59,6 @@ func notif_end():
 # Decrement the active notifications counter
 	active_notifs -= 1
 	if active_notifs == 0:
-		print("Notifman: Fullscreen poly disabled. Active notifs: ", active_notifs)
+		#print("Notifman: Fullscreen poly disabled. Active notifs: ", active_notifs)
 		screen_poly = false
 		get_window().set_mouse_passthrough_polygon(usersettings.polygon)

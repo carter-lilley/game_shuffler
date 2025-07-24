@@ -18,7 +18,8 @@ func open():
 		await get_tree().create_timer(0.5).timeout
 		open()
 		return
-	globals.new_tween(tex_rect, "material:shader_parameter/transition_completeness", 1.0,.8, Tween.EASE_OUT, Tween.TRANS_CUBIC,0.0, false, end)
+	await get_tree().create_timer(1.0).timeout
+	globals.new_tween(tex_rect, "material:shader_parameter/transition_completeness", 1.0,1.0, Tween.EASE_OUT, Tween.TRANS_CUBIC,0.0, false, end)
 	
 func end():
 	emit_signal("notif_complete")

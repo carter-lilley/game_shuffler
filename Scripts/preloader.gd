@@ -6,32 +6,25 @@ signal preload_completed(original_game: Dictionary, updated_game: Dictionary)
 
 @onready var progress_bar = $"../CenterContainer/ProgressBar"
 
-var _thread: Thread
-var _is_running := false
-
+var _thread:= Thread.new()
 func _ready():
 	progress_bar.visible = false
 	connect("progress_updated", Callable(self, "_on_progress_updated"))
 
 func _process(_delta):
-	progress_bar.visible = _is_running
+	progress_bar.visible = _thread.is_alive()
 
 func start_preloading(game: Dictionary) -> void:
-	if _is_running:
-		push_warning("Preloader already running.")
+	if _thread.is_alive():
+		push_warning("[Preloader]","Preloader already running.")
 		return
-
 	if not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path("user://temp")):
 		DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("user://temp"))
-
-	_thread = Thread.new()
 	var err = _thread.start(_threaded_preload.bind(game))
 	if err != OK:
-		push_error("Failed to start preload thread.")
+		push_error("[Preloader]","Failed to start preload thread.")
 		_thread = null
 		return
-
-	_is_running = true
 
 func _on_progress_updated(value: float) -> void:
 	progress_bar.value = value * 100.0
@@ -45,7 +38,7 @@ func _threaded_preload(game: Dictionary) -> void:
 	print("Thread started")
 	var from_path: String = game.get("path", "")
 	if from_path == "":
-		push_error("No path provided.")
+		push_error("[Preloader]","No path provided.")
 		call_deferred("emit_signal", "preload_completed", game, game)
 		return
 
@@ -62,8 +55,7 @@ func _threaded_preload(game: Dictionary) -> void:
 	updated_game["path"] = to_path
 	call_deferred("emit_signal", "preload_completed", game, updated_game)
 	
-	print("Preload completed. Closing thread.")
-	_is_running = false
+	print("[Preloader]","Preload completed. Closing thread.")
 	_thread.call_deferred("wait_to_finish") # Safely clean up after emitting
 	
 func _copy_file_with_progress(from_path: String, to_path: String, chunk_size := 4 * 1024 * 1024) -> bool:
@@ -100,3 +92,17 @@ func _get_file_size(path: String) -> int:
 		file.close()
 		return size
 	return 0
+
+func get_file_size_gbs(path: String) -> float:
+	var file = FileAccess.open(path, FileAccess.READ)
+	if file:
+		var size = file.get_length()
+		file.close()
+		var to_gb = bytes_to_gb(size)
+		print("[Preloader]","GAME FILE SIZE: ",to_gb)
+		return to_gb
+	return 0
+	
+func bytes_to_gb(bytes: int) -> float:
+	return float(bytes) / (1024.0 * 1024.0 * 1024.0)
+	
