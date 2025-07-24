@@ -16,22 +16,20 @@ func _ready() -> void:
 #1600, 900
 var screen_size: Vector2 = Vector2(1600,900)
 #-------------------------------
-var bag_size: int = 4 # 12
-var round_time_min : float = 45.0 # 45.0
-var round_time_max : float = 45.0 # 148
+var bag_size: int = 10 # 12
+var round_time_min : float = 38.0 # 45.0
+var round_time_max : float = 132.0 # 148
 #-------------------------------
 var rom_dir: String = "Z:\\roms"
 #--------- Standalones
-var cemu_dir: String = "D:\\Emulation\\storage\\cemu\\Cemu.exe"
+var cemu: String = "D:\\Emulation\\storage\\cemu\\Cemu.exe"
 var azahar: String = "D:\\Emulation\\storage\\azahar\\azahar.exe"
 var dolphin: String = "D:\\Emulation\\storage\\dolphin\\Dolphin.exe"
-var pcsx2_dir: String = "D:\\Emulation\\storage\\pcsx2\\pcsx2-qt.exe"
 var rpcs3_dir: String = "D:\\Emulation\\storage\\rpcs3\\rpcs3.exe"
 var vita3k_dir: String = "D:\\Emulation\\storage\\Vita3k\\Vita3K.exe"
-var xemu_dir: String = "D:\\Emulation\\storage\\xemu\\xemu.exe"
-var xenia_dir: String = "D:\\Emulation\\storage\\xenia\\xenia_canary.exe"
-var sudachi_dir: String = "D:\\Emulation\\storage\\sudachi\\sudachi.exe"
-var ryujinx_dir: String = "D:\\Emulation\\storage\\ryujinx\\Ryujinx.exe"
+var xemu: String = "D:\\Emulation\\storage\\xemu\\xemu.exe"
+var xenia: String = "D:\\Emulation\\storage\\xenia\\xenia_canary.exe"
+var sudachi: String = "D:\\Emulation\\storage\\sudachi\\sudachi.exe"
 #--------- RA
 var retroarch: String = "C:\\Users\\carter\\Documents\\GitHub\\retroarch\\retroarch.exe"
 var ra_cores_dir: String = "C:\\Users\\carter\\Documents\\GitHub\\retroarch\\cores"
@@ -186,10 +184,11 @@ var sys_default := {
 		"default_state": true,
 		"icon": preload("res://Sprites/ui_logos/Nintendo Entertainment System.png")},
 	"ngc": {"name": "Nintendo GameCube", 
-		"emu": dolphin, 
+		"emu": retroarch, 
 		"core": "\\dolphin_libretro.dll", 
-		"args": ["-e" , "{PATH}", "--batch" ,"--config" , "Dolphin.Display.Fullscreen=True"],
-		"method": "suspend",
+		#"args": ["-e" , "{PATH}", "--batch" ,"--config" , "Dolphin.Display.Fullscreen=True"],
+		"args": ["-L" , "{CORE}", "{PATH}"],
+		"method": "udp",
 		"default_state": true,
 		"icon": preload("res://Sprites/ui_logos/Nintendo GameCube.png")},
 	#"pico8": {"name": "pico8", "emu": "", "core": "", "args": ""},
@@ -278,11 +277,11 @@ var sys_default := {
 		"method": "udp",
 		"default_state": true,
 		"icon": preload("res://Sprites/ui_logos/Super Nintendo Entertainment System.png")},
-	"switch": {"name": "Nintendo Switch", 
-		"emu": null, 
-		"core": "", 
+	"switch": {"name": "Nintendo Switch", #Doesnt like WinHide, cant be brought to front.
+		"emu": sudachi, 
+		"core": null, 
 		"args": ["-g","{PATH}","-f"],
-		"method": "udp",
+		"method": "suspend",
 		"default_state": false,
 		"icon": preload("res://Sprites/ui_logos/Nintendo Switch.png")},
 	"turbografx-16-slash-pc-engine-cd": {"name": "TurboGrafx CD", 
@@ -306,18 +305,19 @@ var sys_default := {
 		"method": "udp",
 		"default_state": true,
 		"icon": preload("res://Sprites/ui_logos/Nintendo Virtual Boy.png")},
-	"wii": {"name": "Wii", 
+	"wii": {"name": "Wii", #Can't run two WII Dolphin instances, as they conflict sharing a nand.
 		"emu": retroarch, 
 		"core": "\\dolphin_libretro.dll", 
-		"args": ["-e" , "{PATH}", "--config" , "Dolphin.Display.Fullscreen=True"],
+		#"args": ["-e" , "{PATH}", "--batch" ,"--config" , "Dolphin.Display.Fullscreen=True"],
+		"args": ["-L" , "{CORE}", "{PATH}"],
 		"method": "udp",
-		"default_state": false,
+		"default_state": true,
 		"icon": preload("res://Sprites/ui_logos/Nintendo Wii.png")},
-	"wiiu": {"name": "Wii U", 
-		"emu": null, 
-		"core": "", 
+	"wiiu": {"name": "Wii U", #Doesnt WinHide right?
+		"emu": cemu, 
+		"core": null, 
 		"args": ["-g" , "{PATH}", "-f"],
-		"method": "udp",
+		"method": "suspend",
 		"default_state": false,
 		"icon": preload("res://Sprites/ui_logos/Nintendo Wii U.png")},
 	"win3x": {"name": "Windows 3.x", 
@@ -327,18 +327,18 @@ var sys_default := {
 		"method": "udp",
 		"default_state": true,
 		"icon": preload("res://Sprites/ui_logos/Windows 3.x.png")},
-	"xbox": {"name": "Xbox", 
-		"emu": null, 
-		"core": "", 
-		"args": ["--fullscreen=true", "{PATH}"],
-		"method": "udp",
+	"xbox": {"name": "Xbox", #Thinks it's directory is Godot's dir, breaking links.
+		"emu": xemu, 
+		"core": null, 
+		"args": ["{PATH}"],
+		"method": "suspend",
 		"default_state": false,
 		"icon": preload("res://Sprites/ui_logos/Microsoft Xbox.png")},
 	"xbox360": {"name": "Xbox 360", 
-		"emu": null, 
-		"core": "", 
+		"emu": xenia, 
+		"core": null, 
 		"args": ["--fullscreen=true", "{PATH}"],
-		"method": "udp",
-		"default_state": false,
+		"method": "suspend",
+		"default_state": true,
 		"icon": preload("res://Sprites/ui_logos/Microsoft Xbox 360.png")},
 }

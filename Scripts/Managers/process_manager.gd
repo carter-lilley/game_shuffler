@@ -21,7 +21,6 @@ func create_game_process(game: Dictionary) -> void:
 
 func attempt_create(game: Dictionary) -> void:
 	var system = usersettings.sys_default.get(game["sys"], {})
-	var core = usersettings.ra_cores_dir + system.get("core", "")
 	var emu = system.get("emu", "")
 	var args = []
 	for arg in system.get("args", []):
@@ -29,6 +28,7 @@ func attempt_create(game: Dictionary) -> void:
 			"{PATH}":
 				args.append(game.get("path", ""))
 			"{CORE}":
+				var core = usersettings.ra_cores_dir + system.get("core", "")
 				args.append(core)
 			_:
 				args.append(arg)

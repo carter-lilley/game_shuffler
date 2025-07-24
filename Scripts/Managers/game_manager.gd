@@ -109,7 +109,7 @@ func queue_game(game : Dictionary) -> void:
 	if not game["started"]:
 		# FIRST START LOGIC
 		preloader.start_preloading(game)
-		#query_game_info(game)
+		query_game_info(game)
 		#if preloader.get_file_size_gbs(game["path"]) > 0.5:
 			#preloader.start_preloading(game)
 		#else:
@@ -138,7 +138,7 @@ func _on_process_resumed(game : Dictionary, result : int):
 		start_game(game)
 
 func _on_process_created(game : Dictionary):
-	query_game_info(game)
+	#query_game_info(game)
 	print("[GameManager]",game["name"], " successfully started.")
 	start_game(game)
 

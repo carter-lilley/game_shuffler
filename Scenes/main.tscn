@@ -1,17 +1,17 @@
 [gd_scene load_steps=17 format=3 uid="uid://vf05yu8hwe1m"]
 
-[ext_resource type="Texture2D" uid="uid://b022tynb5hjol" path="res://Sprites/ui_icons/1x/forward.png" id="1_w0jxp"]
-[ext_resource type="Texture2D" uid="uid://dhelt10flog05" path="res://Sprites/ui_icons/1x/pause.png" id="2_oh30t"]
-[ext_resource type="Texture2D" uid="uid://obmpq4l4uwm5" path="res://Sprites/ui_icons/1x/cross.png" id="3_3w63a"]
-[ext_resource type="Texture2D" uid="uid://j4cmw1ripp26" path="res://Sprites/ui_icons/1x/next.png" id="4_48krp"]
-[ext_resource type="Texture2D" uid="uid://h6q3wtvw3c6j" path="res://Sprites/ui_icons/1x/gear.png" id="5_ll0ms"]
-[ext_resource type="Texture2D" uid="uid://dftij4iccvdth" path="res://Sprites/ui_icons/1x/return.png" id="6_8pnrg"]
-[ext_resource type="Script" uid="uid://c42xejuf11xbd" path="res://Globals/user_settings.gd" id="7_2ku1e"]
-[ext_resource type="Script" uid="uid://c7jchj6x4yk8s" path="res://Scripts/preloader.gd" id="8_xdwrw"]
-[ext_resource type="Script" uid="uid://c2o7puljrib5u" path="res://Scripts/Managers/process_manager.gd" id="9_8sup3"]
-[ext_resource type="Script" uid="uid://d2joct8xgci0b" path="res://Scripts/Managers/game_manager.gd" id="10_xn1hb"]
-[ext_resource type="AudioStream" uid="uid://cjade33mfa1sg" path="res://Sounds/Chime.wav" id="11_jrn5c"]
-[ext_resource type="Script" uid="uid://cwpyhs72o2vf6" path="res://Scripts/Managers/HTTP_manager.gd" id="11_oh30t"]
+[ext_resource type="Texture2D" uid="uid://b022tynb5hjol" path="res://Sprites/ui_icons/1x/forward.png" id="1_6iyac"]
+[ext_resource type="Texture2D" uid="uid://dhelt10flog05" path="res://Sprites/ui_icons/1x/pause.png" id="2_fdnlq"]
+[ext_resource type="Texture2D" uid="uid://obmpq4l4uwm5" path="res://Sprites/ui_icons/1x/cross.png" id="3_jkdf5"]
+[ext_resource type="Texture2D" uid="uid://j4cmw1ripp26" path="res://Sprites/ui_icons/1x/next.png" id="4_wsu2k"]
+[ext_resource type="Texture2D" uid="uid://h6q3wtvw3c6j" path="res://Sprites/ui_icons/1x/gear.png" id="5_k12tt"]
+[ext_resource type="Texture2D" uid="uid://dftij4iccvdth" path="res://Sprites/ui_icons/1x/return.png" id="6_h1bgf"]
+[ext_resource type="Script" uid="uid://c42xejuf11xbd" path="res://Globals/user_settings.gd" id="7_b3802"]
+[ext_resource type="Script" uid="uid://c7jchj6x4yk8s" path="res://Scripts/preloader.gd" id="8_fevyy"]
+[ext_resource type="Script" uid="uid://c2o7puljrib5u" path="res://Scripts/Managers/process_manager.gd" id="9_hibaj"]
+[ext_resource type="Script" uid="uid://d2joct8xgci0b" path="res://Scripts/Managers/game_manager.gd" id="10_pdsj5"]
+[ext_resource type="Script" uid="uid://cwpyhs72o2vf6" path="res://Scripts/Managers/HTTP_manager.gd" id="11_ee4r6"]
+[ext_resource type="AudioStream" uid="uid://cjade33mfa1sg" path="res://Sounds/Chime.wav" id="12_gt3je"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wb2bi"]
 
@@ -52,33 +52,33 @@ custom_minimum_size = Vector2(0, 45)
 layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_wb2bi")
 toggle_mode = true
-icon = ExtResource("1_w0jxp")
+icon = ExtResource("1_6iyac")
 
 [node name="Pause" type="Button" parent="HBoxContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_027c1")
 toggle_mode = true
-icon = ExtResource("2_oh30t")
+icon = ExtResource("2_fdnlq")
 
 [node name="Remove" type="Button" parent="HBoxContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_ml8ra")
-icon = ExtResource("3_3w63a")
+icon = ExtResource("3_jkdf5")
 
 [node name="Skip" type="Button" parent="HBoxContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_4ki21")
-icon = ExtResource("4_48krp")
+icon = ExtResource("4_wsu2k")
 
 [node name="Settings" type="Button" parent="HBoxContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_4ki21")
-icon = ExtResource("5_ll0ms")
+icon = ExtResource("5_k12tt")
 
 [node name="Restart" type="Button" parent="HBoxContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_4ki21")
-icon = ExtResource("6_8pnrg")
+icon = ExtResource("6_h1bgf")
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -94,22 +94,22 @@ custom_minimum_size = Vector2(512, 64)
 layout_mode = 2
 
 [node name="user_settings" type="Node" parent="."]
-script = ExtResource("7_2ku1e")
+script = ExtResource("7_b3802")
 
 [node name="preloader" type="Node" parent="."]
-script = ExtResource("8_xdwrw")
+script = ExtResource("8_fevyy")
 
 [node name="process_manager" type="Node" parent="."]
-script = ExtResource("9_8sup3")
+script = ExtResource("9_hibaj")
 
 [node name="game_manager" type="Node" parent="."]
-script = ExtResource("10_xn1hb")
+script = ExtResource("10_pdsj5")
 
 [node name="HTTP_manager" type="Node" parent="."]
-script = ExtResource("11_oh30t")
+script = ExtResource("11_ee4r6")
 
 [node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
-stream = ExtResource("11_jrn5c")
+stream = ExtResource("12_gt3je")
 
 [connection signal="toggled" from="HBoxContainer/VBoxContainer/Start" to="game_manager" method="_toggled"]
 [connection signal="toggled" from="HBoxContainer/VBoxContainer/Pause" to="game_manager" method="_pause"]
