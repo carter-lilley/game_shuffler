@@ -1,0 +1,16 @@
+xemu_version: 0.8.118
+xemu_branch: master
+xemu_commit: eb8e4519edcc150e8bc6cbe1d2186f852e9c919a
+xemu_date: Sat Nov 29 21:00:25 UTC 2025
+xemu_settings_get_base_path: base path: D:\Emulation\storage\xemu\
+xemu_settings_get_path: config path: D:\Emulation\storage\xemu\xemu.toml
+nvapi: Saved settings
+CPU: Intel(R) Core(TM) i7-9700K CPU @ 3.60GHz
+OS_Version:  25H2
+GL_VENDOR: NVIDIA Corporation
+GL_RENDERER: NVIDIA GeForce RTX 3090/PCIe/SSE2
+GL_VERSION: 4.0.0 NVIDIA 581.80
+GL_SHADING_LANGUAGE_VERSION: 4.00 NVIDIA via Cg compiler
+GL geometry shader winding: 0, 0, 0, 0
+Created QEMU launch parameters: D:\Emulation\storage\xemu\xemu.exe -machine xbox,short-animation=on,kernel-irqchip=off,avpack=hdtv -m 64 -drive index=1,media=cdrom,file=Z:\roms\xbox\Guy Game,, The (USA).iso -display xemu -device usb-hub,port=1,ports=4 C:/Users/carter/AppData/Roaming/Godot/app_userdata/game_shuffler/temp/Official Xbox Magazine Game Disc 08 (USA).iso 
+D:\Emulation\storage\xemu\xemu.exe: C:/Users/carter/AppData/Roaming/Godot/app_userdata/game_shuffler/temp/Official: Could not open 'C:/Users/carter/AppData/Roaming/Godot/app_userdata/game_shuffler/temp/Official': The system cannot find the file specified.

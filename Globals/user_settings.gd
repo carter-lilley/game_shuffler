@@ -2,6 +2,8 @@ extends Node
 
 var systems : Dictionary
 
+# Remember to install pssuspend and sfk on your system. 
+
 var polygon : PackedVector2Array = []
 func _ready() -> void:
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
@@ -16,24 +18,30 @@ func _ready() -> void:
 #1600, 900
 var screen_size: Vector2 = Vector2(1600,900)
 #-------------------------------
-var bag_size: int = 10 # 12
-var round_time_min : float = 38.0 # 45.0
-var round_time_max : float = 132.0 # 148
+var bag_size: int = 10 # 10
+var round_time_min : float = 38.0 # 38.0
+var round_time_max : float = 132.0 # 132.0
+var system_weight_mode: float = 0.65 # 0.0 = equal systems, 1.0 = proportional to game count
 #-------------------------------
 var rom_dir: String = "Z:\\roms"
+var emu_dir: String = "D:\\Emulation\\storage"
 #--------- Standalones
-var cemu: String = "D:\\Emulation\\storage\\cemu\\Cemu.exe"
-var azahar: String = "D:\\Emulation\\storage\\azahar\\azahar.exe"
-var dolphin: String = "D:\\Emulation\\storage\\dolphin\\Dolphin.exe"
-var rpcs3_dir: String = "D:\\Emulation\\storage\\rpcs3\\rpcs3.exe"
-var vita3k_dir: String = "D:\\Emulation\\storage\\Vita3k\\Vita3K.exe"
-var xemu: String = "D:\\Emulation\\storage\\xemu\\xemu.exe"
-var xenia: String = "D:\\Emulation\\storage\\xenia\\xenia_canary.exe"
-var sudachi: String = "D:\\Emulation\\storage\\sudachi\\sudachi.exe"
+var cemu: String = emu_dir + "\\cemu\\Cemu.exe"
+var azahar: String = emu_dir + "\\azahar\\azahar.exe"
+var dolphin: String = emu_dir + "\\dolphin\\Dolphin.exe"
+var rpcs3_dir: String = emu_dir + "\\rpcs3\\rpcs3.exe"
+var vita3k_dir: String = emu_dir + "\\Vita3k\\Vita3K.exe"
+var xemu: String = emu_dir + "\\xemu\\xemu.exe"
+var xenia: String = emu_dir + "\\xenia\\xenia_canary.exe"
+var eden: String = emu_dir + "\\eden\\eden.exe"
 #--------- RA
-var retroarch: String = "C:\\Users\\carter\\Documents\\GitHub\\retroarch\\retroarch.exe"
-var ra_cores_dir: String = "C:\\Users\\carter\\Documents\\GitHub\\retroarch\\cores"
+var retroarch: String = emu_dir + "\\retroarch\\retroarch.exe"
+var ra_cores_dir: String = emu_dir + "\\retroarch\\cores"
 #---------
+#eden
+#rpcs3
+#vita3k
+#xenia
 var sys_default := {
 	"3do": {"name": "3DO Interactive Multiplayer", 
 		"emu": retroarch, 
@@ -96,7 +104,7 @@ var sys_default := {
 		"icon": preload("res://Sprites/ui_logos/MS-DOS.png")},
 	"fds": {"name": "Family Computer Disk System", 
 		"emu": retroarch, 
-		"core": "", 
+		"core": "\\mesen_libretro.dll", 
 		"args": ["-L" , "{CORE}", "{PATH}"],
 		"method": "udp",
 		"default_state": true,
@@ -278,7 +286,7 @@ var sys_default := {
 		"default_state": true,
 		"icon": preload("res://Sprites/ui_logos/Super Nintendo Entertainment System.png")},
 	"switch": {"name": "Nintendo Switch", #Doesnt like WinHide, cant be brought to front.
-		"emu": sudachi, 
+		"emu": eden, 
 		"core": null, 
 		"args": ["-g","{PATH}","-f"],
 		"method": "suspend",
@@ -305,7 +313,7 @@ var sys_default := {
 		"method": "udp",
 		"default_state": true,
 		"icon": preload("res://Sprites/ui_logos/Nintendo Virtual Boy.png")},
-	"wii": {"name": "Wii", #Can't run two WII Dolphin instances, as they conflict sharing a nand.
+	"wii": {"name": "Wii", # Can't run two WII Dolphin instances, as they conflict sharing a nand.
 		"emu": retroarch, 
 		"core": "\\dolphin_libretro.dll", 
 		#"args": ["-e" , "{PATH}", "--batch" ,"--config" , "Dolphin.Display.Fullscreen=True"],
@@ -313,12 +321,12 @@ var sys_default := {
 		"method": "udp",
 		"default_state": true,
 		"icon": preload("res://Sprites/ui_logos/Nintendo Wii.png")},
-	"wiiu": {"name": "Wii U", #Doesnt WinHide right?
+	"wiiu": {"name": "Wii U", # Doesnt WinHide right?
 		"emu": cemu, 
 		"core": null, 
 		"args": ["-g" , "{PATH}", "-f"],
 		"method": "suspend",
-		"default_state": false,
+		"default_state": true,
 		"icon": preload("res://Sprites/ui_logos/Nintendo Wii U.png")},
 	"win3x": {"name": "Windows 3.x", 
 		"emu": retroarch, 
@@ -330,9 +338,9 @@ var sys_default := {
 	"xbox": {"name": "Xbox", #Thinks it's directory is Godot's dir, breaking links.
 		"emu": xemu, 
 		"core": null, 
-		"args": ["{PATH}"],
-		"method": "suspend",
-		"default_state": false,
+		"args": ["-monitor", "tcp:127.0.0.1:4444,server,nowait", "-dvd_path", "{PATH}"],
+		"method": "tcp",
+		"default_state": true,
 		"icon": preload("res://Sprites/ui_logos/Microsoft Xbox.png")},
 	"xbox360": {"name": "Xbox 360", 
 		"emu": xenia, 

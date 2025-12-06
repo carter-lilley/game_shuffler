@@ -2,12 +2,10 @@ extends Node
 class_name GameManager
 # Swap console logos for txt
 # user set-up
-# more options exposed to player in settings (pure random mode, weight by # of games, etc...)
 # move IGDB to seperate thread
 # controller menu combo
 # robust error checking - ongoing crash check?
 # confirmation on "remove"
-# Improve IDGB search parameters
 
 @onready var preloader = $"../preloader"
 @onready var process_manager = $"../process_manager"
@@ -40,13 +38,6 @@ func _ready() -> void:
 	process_manager.connect("process_resumed",_on_process_resumed)
 	print("Ready...")
 	randomize()
-		
-func set_entries():
-	bag.clear()
-	for i in range(usersettings.bag_size):
-		var entry = rollGame()
-		bag.append(entry)
-	print(bag)
 
 func rerollGame(i : int):
 	print("Rerolling ", bag[i]["name"],"...new result:")
@@ -56,10 +47,45 @@ func rerollGame(i : int):
 	var new_game = rollGame()
 	bag[i] = new_game
 	print(bag[i])
+var _cached_system_pool: Array = []
+
+func set_entries():
+	bag.clear()
+	_build_system_pool()  # Cache the pool once
+	for i in range(usersettings.bag_size):
+		var entry = rollGame()
+		bag.append(entry)
+	print(bag)
+
+func _build_system_pool() -> void:
+	var keys := usersettings.systems.keys().filter(func(k): return usersettings.systems[k])
+	if keys.size() == 0:
+		_cached_system_pool = []
+		return
+	
+	# If weight mode is 0, use equal representation
+	if usersettings.system_weight_mode == 0.0:
+		_cached_system_pool = keys
+		return
+	
+	# Build weighted pool based on game counts
+	_cached_system_pool = []
+	for sys in keys:
+		var sys_dir: String = usersettings.rom_dir + "\\" + sys
+		var game_count: int = DirAccess.get_files_at(sys_dir).size()
+		
+		if game_count == 0:
+			continue
+		
+		# Blend between equal (1) and proportional (game_count)
+		var weight: float = lerp(1.0, float(game_count), usersettings.system_weight_mode)
+		var count: int = maxi(1, int(round(weight)))
+		
+		for i in range(count):
+			_cached_system_pool.append(sys)
 
 func get_random_active_system() -> String:
-	var keys := usersettings.systems.keys().filter(func(k): return usersettings.systems[k])
-	return keys.pick_random() if keys.size() > 0 else ""
+	return _cached_system_pool.pick_random() if _cached_system_pool.size() > 0 else ""
 	
 func rollGame() -> Dictionary:
 	var newGame: Dictionary = game_blank.duplicate()
@@ -88,6 +114,7 @@ func _process(_delta: float) -> void:
 	if is_instance_valid(curr_timer):
 		time_label.text = str(round(curr_timer.time_left))
 
+@onready var chime: AudioStreamWAV = preload("res://Sounds/Chime.wav")
 var current_game: Dictionary = game_blank.duplicate()
 func switch_game(next_game:Dictionary):
 	## Close the loading screen and fullscreen the click-through polygon
@@ -98,9 +125,15 @@ func switch_game(next_game:Dictionary):
 	var load_screen = notifman.notif_load()
 	connect("load_open",Callable(load_screen, "open"))
 	load_screen.close() #start loading animation on new thread?
+	sound_player.stream = chime
 	sound_player.play()
 	if current_game["pid"] != -1:
-		process_manager.stop_game_process(current_game)
+		if usersettings.sys_default.get(current_game["sys"], {}).get("method", null) == "tcp":
+			print("Tcp stop method found. Calling stop and wait.")
+			process_manager.stop_game_process(current_game)
+			while process_manager.stop_thread.is_alive():
+				await get_tree().process_frame
+		else: process_manager.stop_game_process(current_game)
 	else:
 		print("No previous game process to stop.")
 	queue_game(next_game)
@@ -149,7 +182,7 @@ func _on_process_failed(game : Dictionary):
 	
 func _on_preload_completed(original_game: Dictionary, updated_game: Dictionary) -> void:
 	if updated_game.has("path"):
-		print("Updated path after preload:", updated_game["path"])
+		print("[GameManager]: Updated path after preload:", updated_game["path"])
 		for key in updated_game.keys():
 			original_game[key] = updated_game[key]
 	else:
@@ -204,9 +237,9 @@ func _diag_confirm(_box : AcceptDialog):
 func shutdown():
 	clear_directory("user://temp")
 	for game in bag:
-		if game["pid"] != -1 and OS.is_process_running(game["pid"]):
+		if game["pid"] != -1 and process_manager.is_process_running(game["pid"]):
 			OS.kill(game["pid"])
-			print("Killed PID: ",game["pid"])
+			print("[GameManager] Killed PID: ",game["pid"])
 	globals.timers_kill()
 	
 func _pause(state: bool) -> void:
@@ -234,8 +267,11 @@ func _remove() -> void:
 		push_error("Previous game not found in bag!")
 
 func _restart() -> void:
-	if !bag.is_empty():
-		switch_game(current_game)
+	if process_manager.is_process_running(current_game["pid"]):
+		OS.kill(current_game["pid"])
+	process_manager.attempt_create(current_game)
+	#if not bag.is_empty():
+		#switch_game(current_game)
 
 func _on_settings_pressed() -> void:
 	notifman.notif_settings()

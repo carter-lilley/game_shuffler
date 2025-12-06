@@ -1,6 +1,8 @@
 extends Node
 class_name ProcessManager
 
+#Open emus in their working dir. 
+
 signal process_failed(game: Dictionary)
 signal process_created(game: Dictionary)
 
@@ -8,6 +10,8 @@ signal process_stopped(game: Dictionary)
 signal process_stop_failed(game: Dictionary, result: int)
 
 signal process_resumed(game: Dictionary, result: int)
+
+@onready var sound_player = $"../AudioStreamPlayer2D"
 
 var create_thread := Thread.new()
 func create_game_process(game: Dictionary) -> void:
@@ -32,12 +36,33 @@ func attempt_create(game: Dictionary) -> void:
 				args.append(core)
 			_:
 				args.append(arg)
-	var pid = OS.create_process(emu, args, true)
+	#var pid = OS.create_process(emu, args, true)
+	var pid = launch_emu(emu, args)
 	print("[ProcessManager]","Attempting to create process of ", pid, "...")
 	if pid != -1:
 		_confirm_create(pid, emu, game)
 	call_deferred("create_result",game)
 
+func launch_emu(exe_path: String, args: PackedStringArray) -> int:
+	var ps_script = ProjectSettings.globalize_path("res://tools/launch_emulator.ps1")
+	var ps_args = [
+		"-NoProfile",
+		"-File", ps_script,
+		"-ExePath", exe_path,
+	]
+	# Append each emulator argument separately
+	for arg in args:
+		ps_args.append(arg)
+	#print(ps_args)
+	var output := []
+	var exit_code := OS.execute("powershell", ps_args, output, true)
+	if exit_code != OK or output.size() == 0:
+		push_error("Failed to launch emulator")
+		return -1
+	# Parse PID from output
+	#print(int(output[0].strip_edges()))
+	return int(output[0].strip_edges())
+	
 func create_result(game: Dictionary):
 	create_thread.wait_to_finish()
 	if game["started"]:
@@ -51,8 +76,8 @@ func _confirm_create(pid: int, emu: String, game: Dictionary) -> void:
 		const CHECK_INTERVAL := 0.2
 		var elapsed := 0.0
 		while elapsed < MAX_WAIT:
-			if OS.is_process_running(pid):
-				var exe_path := _get_process_path_powershell(pid)
+			if is_process_running(pid):
+				var exe_path := get_process_path(pid)
 				if exe_path != "" and exe_path.to_lower() == emu.to_lower():
 					print("[ProcessManager]","Process ID & Path confirmed.")
 					game["pid"] = pid
@@ -65,15 +90,12 @@ func _confirm_create(pid: int, emu: String, game: Dictionary) -> void:
 			OS.delay_msec(int(CHECK_INTERVAL * 1000))
 			elapsed += CHECK_INTERVAL
 
-
-func _get_process_path_powershell(pid: int) -> String:
+func get_process_path(pid: int) -> String:
 	var output := []
 	var command := "try { (Get-Process -Id %d).Path } catch { '' }" % pid
 	var exit_code := OS.execute("powershell", ["-NoProfile", "-Command", command], output, true)
-
 	if exit_code != OK or output.is_empty():
 		return ""
-
 	for line in output:
 		line = line.strip_edges()
 		if line.to_lower().ends_with(".exe"):
@@ -93,7 +115,7 @@ func _threaded_stop_process(game: Dictionary) -> void:
 	if method == null:
 		push_error("ERROR: No stop method found.")
 		call_deferred("emit_signal", "process_stop_failed", game)
-	print("Stopping ", game["name"], " by ", method)
+	print("[ProcessManager] Stopping ", game["name"], " via ", method)
 	var result: bool = false
 	match method:
 		"udp":
@@ -103,6 +125,18 @@ func _threaded_stop_process(game: Dictionary) -> void:
 			result = _confirm_stop(game["pid"])
 		"suspend":
 			result = pssuspend(game)
+		"tcp":
+			var save_name = str(game["name"].hash())
+			var save_response = tcp_send("savevm %s" % save_name)
+			# Wait for response to contain confirmation or error
+			var max_wait = 20  # 20 seconds max for save
+			var waited = 0
+			while save_response[0] == "" and waited < max_wait:
+				OS.delay_msec(500)
+				waited += 0.5
+			OS.delay_msec(1000)  # Extra buffer
+			tcp_send("quit")
+			result = _confirm_stop(game["pid"])
 		_:
 			push_error("Unknown stop method: %s" % method)
 			result = false
@@ -111,16 +145,16 @@ func _threaded_stop_process(game: Dictionary) -> void:
 func stop_result(result : bool, game: Dictionary):
 	stop_thread.wait_to_finish()
 	if result:
-		print(game["name"], " confirmed stopped.")
+		print("[ProcessManager] ", game["name"], " confirmed stopped.")
 		emit_signal("process_stopped",game)
 	else:
-		push_error("ERROR: Unabled to stop game.")
+		push_error("[ProcessManager] ERROR: Unabled to stop game.")
 		emit_signal("process_stop_failed",game)
 
 func _confirm_stop(pid: int, timeout: float = 5.0, check_interval: float = 0.5) -> bool:
 	var elapsed := 0.0
 	while elapsed < timeout:
-		if not OS.is_process_running(pid):
+		if not is_process_running(pid):
 			print("Process has exited.")
 			return true
 		else:
@@ -131,10 +165,42 @@ func _confirm_stop(pid: int, timeout: float = 5.0, check_interval: float = 0.5) 
 	return false
 
 func resume_game_process(game: Dictionary):
-	if usersettings.sys_default.get(game["sys"], {}).get("method", {}) == "udp":
-		create_game_process(game)
-	else:
-		psresume(game)
+	var method = usersettings.sys_default.get(game["sys"], {}).get("method", null)
+	if method == null:
+		push_error("ERROR: No resume method found.")
+	print("[ProcessManager] Resuming ", game["name"], " via ", method)
+	match method:
+		"udp":
+			create_game_process(game)
+		"tcp":
+			create_game_process(game)
+			OS.delay_msec(2000)
+			var save_name  = str(game["name"].hash())
+			tcp_send("loadvm %s"%save_name)
+		"suspend":
+			psresume(game)
+		_:
+			push_error("Unknown stop method: %s" % method)
+
+# Returns true if the process with `pid` exists, false otherwise
+func is_process_running(pid: int) -> bool:
+	var ps_script = ProjectSettings.globalize_path("res://tools/verify_process.ps1")
+	var ps_args = [
+		"-NoProfile",
+		"-File", ps_script,
+		"-TargetPid", str(pid)
+	]
+	var output := []
+	var exit_code := OS.execute("powershell", ps_args, output, true)
+	if exit_code != OK:
+		push_error("[ProcessManager] Failed to check process PID %d" % pid)
+		return false
+	if output.size() == 0:
+		push_error("[ProcessManager] No output returned from verify_process.ps1 for PID %d" % pid)
+		return false
+	# Output should be either 'True' or 'False'
+	var result_str = output[0].strip_edges().to_lower()
+	return result_str == "true"
 
 # UTILS-----------------------------------------------------------------------------------------
 func get_lnk_target(lnk_path: String) -> String:
@@ -167,30 +233,53 @@ func get_lnk_target(lnk_path: String) -> String:
 # POWERSHELL CMDS------------------------------------------------------------------------------
 var sfk_path = ProjectSettings.globalize_path("res://tools/sfk.exe")
 var pssuspend_path = ProjectSettings.globalize_path("res://tools/pssuspend.exe")
-func udp_send(cmd : String) -> Array:
+#fix! maybe related to launching emus in cmd instead of in godot
+func udp_send(cmd : String, port: int = 55355) -> Array:
 	var udp_args : PackedStringArray = [
-		"udpsend", "localhost", "55355", cmd
+		"udpsend", "localhost", str(port), cmd
 		]
 	var output = []
 	var result = OS.execute(sfk_path, udp_args, output, true)
+	print(udp_args)
+	print(output)
 	return output
 
+func tcp_send(cmd: String, port: int = 4444) -> Array:
+	# Build the full command string and let cmd.exe parse it
+	var full_cmd = '"%s" connect localhost:%d +send -spat "%s\\r\\n" +receive +disconnect' % [sfk_path, port, cmd]
+	print("Full command: " + full_cmd)
+	var output = []
+	var exit_code = OS.execute("cmd.exe", ["/C", full_cmd], output, true)
+	print(output)
+	if exit_code != OK:
+		push_error("TCP command failed: %s" % cmd)
+	return output
+	
 func pssuspend(game : Dictionary) -> bool:
+	# Verify the process is still running
+	if not is_process_running(game["pid"]):
+		push_warning("[ProcessManager] Cannot suspend process %d: not running." % game["pid"])
+		return false
 	minimize_window(game["pid"])
 	game["active"] = false
 	var suspend = PackedStringArray([game["pid"]])
-	var result = OS.execute(pssuspend_path,suspend, [], true)
+	var result = OS.execute(pssuspend_path, suspend, [], true)
 	if result != OK:
-		push_error("Failed to suspend process: ", game["pid"])
+		push_error("[ProcessManager] Failed to suspend process: %d" % game["pid"])
 		return false
 	else:
-		print("Suspending Process: ", game["pid"])
+		print("[ProcessManager] Suspending Process: ", game["pid"])
 		return true
 
 func psresume(game : Dictionary):
+	# Verify the process is still running
+	if not is_process_running(game["pid"]):
+		push_warning("Cannot resume process %d: not running." % game["pid"])
+		emit_signal("process_resumed", game, ERR_DOES_NOT_EXIST)
+		return
 	game["active"] = true
 	var args = PackedStringArray(["-r", game["pid"]])
-	var result = OS.execute(pssuspend_path,args, [], true)
+	var result = OS.execute(pssuspend_path, args, [], true)
 	emit_signal("process_resumed", game, result)
 
 func minimize_window(pid: int) -> Array:
@@ -200,39 +289,67 @@ func minimize_window(pid: int) -> Array:
 	var output := []
 	var exit_code := OS.execute(ahk_exe_path, args, output, true)
 	output.append("Exit code: %d" % exit_code)
-	print("[Minimize Window]",output)
+	print("[ProcessManager] Minimize output...",output)
 	return output
 
-var front_thread := Thread.new()
+var maximize_exit_flag := false
+var maximize_thread := Thread.new()
 func maximize_game_process(pid: int) -> void:
-	if front_thread.is_alive():
-		push_error("[ProcessManager]","Thread is still running! Can't maximize process.")
-		return
-	var err := front_thread.start(_attempt_bring_to_front.bind(pid))
+	# Abort any previous bring-to-front attempt
+	print("[ProcessManager] checking if maximize thread is alive...", maximize_thread.is_alive())
+	if maximize_thread.is_alive():
+		print("[ProcessManager] Cancelling previous bring-to-front...")
+		maximize_exit_flag = true
+		maximize_thread.wait_to_finish()
+	maximize_exit_flag = false
+	var err = maximize_thread.start(attempt_maximize.bind(pid))
 	if err != OK:
-		push_error("[ProcessManager]","Failed to start game process thread.")
-		
-func _attempt_bring_to_front(pid: int, timeout: float = 5.0, check_interval: float = 0.5) -> void:
+		push_error("[ProcessManager] Failed to start bring-to-front thread")
+
+func attempt_maximize(pid: int, timeout: float = 5.0, check_interval: float = 0.5) -> void:
 	var ahk_exe_path = ProjectSettings.globalize_path("res://tools/ahk/AutoHotkey64.exe")
-	var ahk_script_path = ProjectSettings.globalize_path("res://tools/bring_to_front.ahk")
+	var ahk_script_path = ProjectSettings.globalize_path("res://tools/maximize_process.ahk")
 	var args = [ahk_script_path, str(pid)]
 	var elapsed := 0.0
 	var success := false
 	var attempt := 1
+	# Pre-check
+	if not is_process_running(pid):
+		print("[ProcessManager] Cannot bring to front: PID %d not running" % pid)
+		call_deferred("maximize_result", false, pid)
+		return
 	while elapsed < timeout:
-		print("[ProcessManager]","Attempt %d to bring PID %d to front..." % [attempt, pid])
+		# Early exit flag
+		if maximize_exit_flag:
+			print("[ProcessManager] Bring-to-front aborted.")
+			break
+		if not is_process_running(pid):
+			print("[ProcessManager] PID vanished during bring-to-front")
+			break
+		print("[ProcessManager] Attempt %d to bring PID %d to front..." % [attempt, pid])
 		var attempt_output := []
 		var exit_code := OS.execute(ahk_exe_path, args, attempt_output, true)
 		if exit_code == 0:
-			print("[ProcessManager]","Success on attempt %d." % attempt)
-			print("[ProcessManager]",attempt_output)
+			print("[ProcessManager] Success on attempt %d." % attempt)
 			success = true
 			break
-		else:
-			print("Failed to bring to front. Retrying...")
 		OS.delay_msec(int(check_interval * 1000))
 		elapsed += check_interval
 		attempt += 1
-	if not success:
-		print("Giving up after %.2f seconds." % elapsed)
-	front_thread.call_deferred("wait_to_finish")
+	print("[ProcessManager] Bring-to-front finished. Success=%s" % success)
+	# ALWAYS report results back to main thread
+	call_deferred("maximize_result", success, pid)
+
+@onready var sucess: AudioStreamWAV = preload("res://Sounds/FrontSuccess.wav")
+@onready var fail: AudioStreamWAV = preload("res://Sounds/FrontFail.wav")
+func maximize_result(success: bool, pid: int) -> void:
+	maximize_thread.wait_to_finish()
+	maximize_exit_flag = false
+	print("[ProcessManager] Bring-to-front result: %s for PID %d" % [success, pid])
+	# Play your chime
+	if success:
+		sound_player.stream = sucess
+		sound_player.play()
+	else:
+		sound_player.stream = fail
+		sound_player.play()

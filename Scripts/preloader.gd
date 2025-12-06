@@ -35,10 +35,10 @@ func _ensure_temp_folder() -> void:
 		dir.make_dir("temp")
 
 func _threaded_preload(game: Dictionary) -> void:
-	print("Thread started")
+	print("[Preloader]: ","Thread started")
 	var from_path: String = game.get("path", "")
 	if from_path == "":
-		push_error("[Preloader]","No path provided.")
+		push_error("[Preloader]: ","No path provided.")
 		call_deferred("emit_signal", "preload_completed", game, game)
 		return
 
