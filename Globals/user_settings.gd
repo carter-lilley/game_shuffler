@@ -289,7 +289,7 @@ var sys_default := {
 	"switch": {"name": "Nintendo Switch", #Doesnt like WinHide, cant be brought to front.
 		"emu": eden, 
 		"core": null, 
-		"args": ["-g","{PATH}"], #,"-f"
+		"args": ["-g","{PATH}","-f"], #,"-f"
 		"method": "suspend",
 		"default_state": true,
 		"icon": preload("res://Sprites/ui_logos/Nintendo Switch.png")},

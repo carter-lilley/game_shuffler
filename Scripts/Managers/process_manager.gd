@@ -301,14 +301,11 @@ func psresume(game : Dictionary):
 		emit_signal("process_resumed", game, ERR_DOES_NOT_EXIST)
 		return
 	game["active"] = true
-	# Step 1: Resume FIRST using pssuspend.exe (proven to work on EDEN)
+	# Resume the process
 	var args = PackedStringArray(["-r", game["pid"]])
 	var result = OS.execute(pssuspend_path, args, [], true)
 	print("[ProcessManager] Resuming Process: ", game["pid"], " result: ", result)
-	# Step 2: Then maximize window in a thread (can't hang main loop)
-	var emu_name := _get_emu_name(game)
-	print("[ProcessManager] Maximizing window for PID: ", game["pid"], " emu: ", emu_name)
-	_maximize_window_async(game["pid"], emu_name)
+	# Window maximize will be handled by start_game via maximize_game_process
 	emit_signal("process_resumed", game, result)
 
 func minimize_window(pid: int, emu_name: String = "") -> Array:

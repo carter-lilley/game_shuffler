@@ -1,8 +1,7 @@
 ; maximize_process.ahk
 ; AHK v2.0+
 ; Usage: AutoHotkey.exe maximize_process.ahk <PID>
-; Shows the main game window using transparency.
-; Does NOT use WinShow because it can hang on suspended processes.
+; Restores the main game window using the hwnd saved by minimize_window.ahk.
 
 #NoTrayIcon
 #SingleInstance Force
@@ -11,28 +10,45 @@ SetTitleMatchMode(2)
 
 pid := A_Args[1]
 
-; Find the main window: largest window with non-empty title (including hidden)
+; Try to read saved hwnd from minimize
+posFile := EnvGet("TEMP") "\game_shuffler_hwnd_" pid ".txt"
 bestHwnd := 0
-maxArea := 0
 
-hwndList := WinGetList("ahk_pid " pid)
-for hwnd in hwndList {
-	if not WinExist(hwnd) {
-		continue
+if FileExist(posFile) {
+	try {
+		fh := FileOpen(posFile, "r")
+		bestHwnd := Integer(fh.Read())
+		fh.Close()
 	}
+}
+
+; If no saved hwnd or it's invalid, fall back to finding the window
+if bestHwnd = 0 or not WinExist(bestHwnd) {
+	bestHwnd := 0
+	maxArea := 0
 	
-	title := WinGetTitle(hwnd)
-	WinGetPos(&X, &Y, &W, &H, hwnd)
-	area := W * H
-	
-	; Skip blank/helper windows (no title or tiny)
-	if title = "" or area < 10000 {
-		continue
-	}
-	
-	if area > maxArea {
-		maxArea := area
-		bestHwnd := hwnd
+	hwndList := WinGetList("ahk_pid " pid)
+	for hwnd in hwndList {
+		if not WinExist(hwnd) {
+			continue
+		}
+		
+		title := WinGetTitle(hwnd)
+		WinGetPos(&X, &Y, &W, &H, hwnd)
+		area := W * H
+		
+		; Skip blank/helper/dummy windows
+		if title = "" or area < 10000 {
+			continue
+		}
+		if InStr(title, "wglDummyWindow") {
+			continue
+		}
+		
+		if area > maxArea {
+			maxArea := area
+			bestHwnd := hwnd
+		}
 	}
 }
 
@@ -40,12 +56,14 @@ if bestHwnd = 0 {
 	ExitApp(1)
 }
 
-; Restore opacity and position
-WinSetTransparent(255, bestHwnd)
-WinMove(0, 0, , , bestHwnd)
-DllCall("SetWindowPos", "Ptr", bestHwnd, "Ptr", 0, "Int", 0, "Int", 0, "Int", 0, "Int", 0, "UInt", 0x0043)
+; Restore from minimized
+DllCall("ShowWindow", "Ptr", bestHwnd, "Int", 9)  ; SW_RESTORE
 
-; Try to activate (non-blocking)
-try WinActivate(bestHwnd)
+; Allow foreground and activate
+DllCall("AllowSetForegroundWindow", "UInt", -1)
+DllCall("SetForegroundWindow", "Ptr", bestHwnd)
+
+; Cleanup temp file
+try FileDelete(posFile)
 
 ExitApp(0)

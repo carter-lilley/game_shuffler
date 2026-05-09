@@ -1,8 +1,7 @@
 ; minimize_window.ahk
 ; AHK v2.0+
 ; Usage: AutoHotkey.exe minimize_window.ahk <PID>
-; Hides the main game window using transparency (works on suspended processes).
-; Does NOT use WinHide because WinHide cannot be reversed on suspended processes.
+; Minimizes the main game window and saves its hwnd for maximize to use.
 
 #NoTrayIcon
 #SingleInstance Force
@@ -33,8 +32,11 @@ for hwnd in hwndList {
 	WinGetPos(&X, &Y, &W, &H, hwnd)
 	area := W * H
 	
-	; Skip blank/helper windows (no title or tiny)
+	; Skip blank/helper/dummy windows
 	if title = "" or area < 10000 {
+		continue
+	}
+	if InStr(title, "wglDummyWindow") {
 		continue
 	}
 	
@@ -48,10 +50,15 @@ if bestHwnd = 0 {
 	ExitApp(2)
 }
 
-; Make transparent and move off-screen (works even on suspended processes)
-WinSetTransparent(0, bestHwnd)
-WinMove(-32000, -32000, , , bestHwnd)
-DllCall("SetWindowPos", "Ptr", bestHwnd, "Ptr", 1, "Int", 0, "Int", 0, "Int", 0, "Int", 0, "UInt", 0x0013)
-WinSetAlwaysOnTop(0, bestHwnd)
+; Save hwnd to temp file for maximize to read
+posFile := EnvGet("TEMP") "\game_shuffler_hwnd_" pid ".txt"
+try {
+	fh := FileOpen(posFile, "w")
+	fh.Write(bestHwnd)
+	fh.Close()
+}
+
+; Minimize to taskbar
+DllCall("ShowWindow", "Ptr", bestHwnd, "Int", 6)  ; SW_MINIMIZE
 
 ExitApp(0)
