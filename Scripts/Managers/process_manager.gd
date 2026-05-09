@@ -255,21 +255,44 @@ func tcp_send(cmd: String, port: int = 4444) -> Array:
 		push_error("TCP command failed: %s" % cmd)
 	return output
 	
+func _get_emu_name(game: Dictionary) -> String:
+	var system = usersettings.sys_default.get(game["sys"], {})
+	var emu_path = system.get("emu", "")
+	if emu_path == "":
+		return ""
+	return emu_path.get_file().get_basename()
+
+func _suspend_resume_threads(pid: int, action: String) -> int:
+	var ps_script = ProjectSettings.globalize_path("res://tools/thread_suspend.ps1")
+	var ps_args = [
+		"-NoProfile",
+		"-ExecutionPolicy", "Bypass",
+		"-File", ps_script,
+		"-ProcessId", str(pid),
+		"-Action", action
+	]
+	var output := []
+	var exit_code := OS.execute("powershell", ps_args, output, true)
+	print("[ProcessManager] thread_suspend.ps1 %s PID %d: exit=%d output=%s" % [action, pid, exit_code, output])
+	return exit_code
+
 func pssuspend(game : Dictionary) -> bool:
 	# Verify the process is still running
 	if not is_process_running(game["pid"]):
 		push_warning("[ProcessManager] Cannot suspend process %d: not running." % game["pid"])
 		return false
-	minimize_window(game["pid"])
 	game["active"] = false
-	var suspend = PackedStringArray([game["pid"]])
-	var result = OS.execute(pssuspend_path, suspend, [], true)
+	# Hide window FIRST (while it's still valid), then freeze
+	var emu_name := _get_emu_name(game)
+	print("[ProcessManager] Hiding window for PID: ", game["pid"], " emu: ", emu_name)
+	minimize_window(game["pid"], emu_name)
+	# Then freeze using thread-level suspension (more reliable than pssuspend.exe)
+	var result = _suspend_resume_threads(game["pid"], "suspend")
 	if result != OK:
 		push_error("[ProcessManager] Failed to suspend process: %d" % game["pid"])
 		return false
-	else:
-		print("[ProcessManager] Suspending Process: ", game["pid"])
-		return true
+	print("[ProcessManager] Suspending Process: ", game["pid"])
+	return true
 
 func psresume(game : Dictionary):
 	# Verify the process is still running
@@ -278,19 +301,50 @@ func psresume(game : Dictionary):
 		emit_signal("process_resumed", game, ERR_DOES_NOT_EXIST)
 		return
 	game["active"] = true
+	# Step 1: Resume FIRST using pssuspend.exe (proven to work on EDEN)
 	var args = PackedStringArray(["-r", game["pid"]])
 	var result = OS.execute(pssuspend_path, args, [], true)
+	print("[ProcessManager] Resuming Process: ", game["pid"], " result: ", result)
+	# Step 2: Then maximize window in a thread (can't hang main loop)
+	var emu_name := _get_emu_name(game)
+	print("[ProcessManager] Maximizing window for PID: ", game["pid"], " emu: ", emu_name)
+	_maximize_window_async(game["pid"], emu_name)
 	emit_signal("process_resumed", game, result)
 
-func minimize_window(pid: int) -> Array:
+func minimize_window(pid: int, emu_name: String = "") -> Array:
 	var ahk_exe_path = ProjectSettings.globalize_path("res://tools/ahk/AutoHotkey64.exe")
 	var ahk_script_path = ProjectSettings.globalize_path("res://tools/minimize_window.ahk")
-	var args = [ahk_script_path, str(pid)]
+	var args = [ahk_script_path, str(pid), emu_name]
 	var output := []
 	var exit_code := OS.execute(ahk_exe_path, args, output, true)
 	output.append("Exit code: %d" % exit_code)
 	print("[ProcessManager] Minimize output...",output)
 	return output
+
+func maximize_window(pid: int, emu_name: String = "") -> Array:
+	var ahk_exe_path = ProjectSettings.globalize_path("res://tools/ahk/AutoHotkey64.exe")
+	var ahk_script_path = ProjectSettings.globalize_path("res://tools/maximize_process.ahk")
+	var args = [ahk_script_path, str(pid), emu_name]
+	var output := []
+	var exit_code := OS.execute(ahk_exe_path, args, output, true)
+	output.append("Exit code: %d" % exit_code)
+	print("[ProcessManager] Maximize output...",output)
+	return output
+
+# Async maximize with timeout - runs in background so it can't hang the main thread
+var _maximize_thread := Thread.new()
+func _maximize_window_async(pid: int, emu_name: String = "") -> void:
+	if _maximize_thread.is_alive():
+		_maximize_thread.wait_to_finish()
+	_maximize_thread.start(_maximize_window_threaded.bind(pid, emu_name))
+
+func _maximize_window_threaded(pid: int, emu_name: String) -> void:
+	var ahk_exe_path = ProjectSettings.globalize_path("res://tools/ahk/AutoHotkey64.exe")
+	var ahk_script_path = ProjectSettings.globalize_path("res://tools/maximize_process.ahk")
+	var args = [ahk_script_path, str(pid), emu_name]
+	var output := []
+	var exit_code := OS.execute(ahk_exe_path, args, output, true)
+	print("[ProcessManager] Async maximize exit code: %d" % exit_code)
 
 var maximize_exit_flag := false
 var maximize_thread := Thread.new()
@@ -329,6 +383,7 @@ func attempt_maximize(pid: int, timeout: float = 5.0, check_interval: float = 0.
 		print("[ProcessManager] Attempt %d to bring PID %d to front..." % [attempt, pid])
 		var attempt_output := []
 		var exit_code := OS.execute(ahk_exe_path, args, attempt_output, true)
+		print("[ProcessManager] AHK exit code: %d, output: %s" % [exit_code, attempt_output])
 		if exit_code == 0:
 			print("[ProcessManager] Success on attempt %d." % attempt)
 			success = true

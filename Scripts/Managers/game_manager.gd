@@ -140,19 +140,17 @@ func switch_game(next_game:Dictionary):
 			
 func queue_game(game : Dictionary) -> void:
 	if not game["started"]:
-		# FIRST START LOGIC
-		preloader.start_preloading(game)
+		if usersettings.copy_to_temp:
+			preloader.start_preloading(game)
+		else:
+			if !process_manager.create_thread.is_alive():
+				process_manager.create_game_process(game)
 		query_game_info(game)
-		#if preloader.get_file_size_gbs(game["path"]) > 0.5:
-			#preloader.start_preloading(game)
-		#else:
-			#if !process_manager.create_thread.is_alive():
-				#process_manager.create_game_process(game)
 	else: 
 		process_manager.resume_game_process(game)
 
 func start_game(next_game : Dictionary):
-## End the loading screen and bring the new prc to front
+	# Always maximize - psresume resumes the process but window maximize happens here
 	process_manager.maximize_game_process(next_game["pid"])
 	emit_signal("load_open")
 ## Stop the current timer and start a new one for the next round

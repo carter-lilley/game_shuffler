@@ -21,7 +21,7 @@
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4ki21"]
 
-[node name="main" type="Control" unique_id=443085020]
+[node name="main" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -30,7 +30,7 @@ grow_horizontal = 2
 grow_vertical = 2
 metadata/_edit_group_ = true
 
-[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1940986257]
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -38,49 +38,49 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer" unique_id=1186735100]
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer"]
 custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
 alignment = 2
 
-[node name="Label" type="Label" parent="HBoxContainer/VBoxContainer" unique_id=711255387]
+[node name="Label" type="Label" parent="HBoxContainer/VBoxContainer"]
 layout_mode = 2
 text = "00:00"
 
-[node name="Start" type="Button" parent="HBoxContainer/VBoxContainer" unique_id=1857567234]
+[node name="Start" type="Button" parent="HBoxContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 45)
 layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_wb2bi")
 toggle_mode = true
 icon = ExtResource("1_6iyac")
 
-[node name="Pause" type="Button" parent="HBoxContainer/VBoxContainer" unique_id=851418581]
+[node name="Pause" type="Button" parent="HBoxContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_027c1")
 toggle_mode = true
 icon = ExtResource("2_fdnlq")
 
-[node name="Remove" type="Button" parent="HBoxContainer/VBoxContainer" unique_id=900757617]
+[node name="Remove" type="Button" parent="HBoxContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_ml8ra")
 icon = ExtResource("3_jkdf5")
 
-[node name="Skip" type="Button" parent="HBoxContainer/VBoxContainer" unique_id=1654806730]
+[node name="Skip" type="Button" parent="HBoxContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_4ki21")
 icon = ExtResource("4_wsu2k")
 
-[node name="Settings" type="Button" parent="HBoxContainer/VBoxContainer" unique_id=733629508]
+[node name="Settings" type="Button" parent="HBoxContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_4ki21")
 icon = ExtResource("5_k12tt")
 
-[node name="Restart" type="Button" parent="HBoxContainer/VBoxContainer" unique_id=1960305468]
+[node name="Restart" type="Button" parent="HBoxContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_4ki21")
 icon = ExtResource("6_h1bgf")
 
-[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1024485689]
+[node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -89,26 +89,26 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="ProgressBar" type="ProgressBar" parent="CenterContainer" unique_id=1243215130]
+[node name="ProgressBar" type="ProgressBar" parent="CenterContainer"]
 custom_minimum_size = Vector2(512, 64)
 layout_mode = 2
 
-[node name="user_settings" type="Node" parent="." unique_id=800155291]
+[node name="user_settings" type="Node" parent="."]
 script = ExtResource("7_b3802")
 
-[node name="preloader" type="Node" parent="." unique_id=477935945]
+[node name="preloader" type="Node" parent="."]
 script = ExtResource("8_fevyy")
 
-[node name="process_manager" type="Node" parent="." unique_id=171817131]
+[node name="process_manager" type="Node" parent="."]
 script = ExtResource("9_hibaj")
 
-[node name="game_manager" type="Node" parent="." unique_id=99197906]
+[node name="game_manager" type="Node" parent="."]
 script = ExtResource("10_pdsj5")
 
-[node name="HTTP_manager" type="Node" parent="." unique_id=1458149191]
+[node name="HTTP_manager" type="Node" parent="."]
 script = ExtResource("11_ee4r6")
 
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=1778117360]
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("12_gt3je")
 volume_db = 24.0
 

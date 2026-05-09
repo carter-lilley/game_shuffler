@@ -18,12 +18,13 @@ func _ready() -> void:
 #1600, 900
 var screen_size: Vector2 = Vector2(1600,900)
 #-------------------------------
-var bag_size: int = 10 # 10
+var bag_size: int = 2 # 10
 var round_time_min : float = 38.0 # 38.0
-var round_time_max : float = 132.0 # 132.0
-var system_weight_mode: float = 0.65 # 0.0 = equal systems, 1.0 = proportional to game count
+var round_time_max : float = 38.0 # 132.0
+var system_weight_mode: float = 0.5 # 0.0 = equal systems, 1.0 = proportional to game count
+var copy_to_temp: bool = false # false = run games directly from their original path
 #-------------------------------
-var rom_dir: String = "Z:\\roms"
+var rom_dir: String = "D:\\Emulation\\jesus"
 var emu_dir: String = "D:\\Emulation\\storage"
 #--------- Standalones
 var cemu: String = emu_dir + "\\cemu\\Cemu.exe"
@@ -288,9 +289,9 @@ var sys_default := {
 	"switch": {"name": "Nintendo Switch", #Doesnt like WinHide, cant be brought to front.
 		"emu": eden, 
 		"core": null, 
-		"args": ["-g","{PATH}","-f"],
+		"args": ["-g","{PATH}"], #,"-f"
 		"method": "suspend",
-		"default_state": false,
+		"default_state": true,
 		"icon": preload("res://Sprites/ui_logos/Nintendo Switch.png")},
 	"turbografx-16-slash-pc-engine-cd": {"name": "TurboGrafx CD", 
 		"emu": retroarch, 
