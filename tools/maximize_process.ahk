@@ -56,7 +56,8 @@ if bestHwnd = 0 {
 	ExitApp(1)
 }
 
-; Restore from minimized
+; Belt-and-suspenders: WinShow first, then restore
+WinShow(bestHwnd)
 DllCall("ShowWindow", "Ptr", bestHwnd, "Int", 9)  ; SW_RESTORE
 
 ; Allow foreground and activate

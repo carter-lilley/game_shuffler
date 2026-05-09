@@ -58,7 +58,8 @@ try {
 	fh.Close()
 }
 
-; Minimize to taskbar
+; Belt-and-suspenders: WinHide first, then minimize
+WinHide(bestHwnd)
 DllCall("ShowWindow", "Ptr", bestHwnd, "Int", 6)  ; SW_MINIMIZE
 
 ExitApp(0)

@@ -18,10 +18,10 @@ func _ready() -> void:
 #1600, 900
 var screen_size: Vector2 = Vector2(1600,900)
 #-------------------------------
-var bag_size: int = 2 # 10
-var round_time_min : float = 38.0 # 38.0
-var round_time_max : float = 38.0 # 132.0
-var system_weight_mode: float = 0.5 # 0.0 = equal systems, 1.0 = proportional to game count
+var bag_size: int = 4 # 10
+var round_time_min : float = 12.0 # 38.0
+var round_time_max : float = 12.0 # 132.0
+var system_weight_mode: float = 0.0 # 0.0 = equal systems, 1.0 = proportional to game count
 var copy_to_temp: bool = false # false = run games directly from their original path
 #-------------------------------
 var rom_dir: String = "D:\\Emulation\\jesus"
